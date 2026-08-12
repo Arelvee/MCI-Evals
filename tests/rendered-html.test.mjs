@@ -37,7 +37,7 @@ test("server-renders the triage app shell", async () => {
   assert.doesNotMatch(html, /react-loading-skeleton/);
 });
 
-test("ships Day 1 scoring and PWA assets", async () => {
+test("ships Day 1 and Day 2 scoring with PWA assets", async () => {
   const [app, layout, manifest, serviceWorker, packageJson] = await Promise.all([
     readFile(new URL("../app/TriageApp.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
@@ -47,8 +47,14 @@ test("ships Day 1 scoring and PWA assets", async () => {
   ]);
 
   assert.match(app, /DAY_ONE_VICTIMS/);
+  assert.match(app, /DAY_TWO_VICTIMS/);
   assert.match(app, /T20/);
   assert.match(app, /RED if airway opened; BLACK if not attempted/);
+  assert.match(app, /Secondary Triage-T Set/);
+  assert.match(app, /SAVE/);
+  assert.match(app, /SORT/);
+  assert.match(app, /Add Member/);
+  assert.match(app, /removeMember/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
   assert.match(layout, /manifest: "\/manifest.webmanifest"/);

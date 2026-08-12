@@ -167,12 +167,36 @@
     @apply mb-4 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4;
   }
 
+  .member-panel-header {
+    @apply mb-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center;
+  }
+
   .section-title {
     @apply mb-3 flex items-center gap-2 text-slate-700;
   }
 
+  .member-panel-header .section-title {
+    @apply mb-0;
+  }
+
   .member-name-grid {
     @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-6;
+  }
+
+  .member-field {
+    @apply grid grid-cols-[1fr_auto] items-end gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-2;
+  }
+
+  .member-field label {
+    @apply min-w-0;
+  }
+
+  .member-remove {
+    @apply mb-0;
+  }
+
+  .add-member-button {
+    @apply w-full sm:w-auto;
   }
 
   .workbench {

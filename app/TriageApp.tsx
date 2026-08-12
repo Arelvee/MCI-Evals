@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 
-type Method = "START" | "SIEVE";
+type Method = "START" | "SIEVE" | "SAVE" | "SORT";
 type Tag = "GREEN" | "YELLOW" | "RED" | "BLACK";
 type Answer = Tag | "";
 type DayKey = "day1" | "day2" | "day3";
@@ -44,9 +44,7 @@ type MethodRecord = {
 type MemberRecord = {
   id: string;
   name: string;
-  START: MethodRecord;
-  SIEVE: MethodRecord;
-};
+} & Record<Method, MethodRecord>;
 
 type EvaluationSession = {
   id: string;
@@ -64,8 +62,23 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-const METHODS: Method[] = ["START", "SIEVE"];
+type VictimRecord = {
+  id: string;
+  correct: Partial<Record<Method, { tags: Tag[]; note?: string }>>;
+};
+
+type DayConfig = {
+  key: DayKey;
+  label: string;
+  ready: boolean;
+  setTitle: string;
+  methods: Method[];
+  victims: VictimRecord[];
+};
+
+const ALL_METHODS: Method[] = ["START", "SIEVE", "SAVE", "SORT"];
 const TAGS: Tag[] = ["GREEN", "YELLOW", "RED", "BLACK"];
+const ALL_VICTIM_IDS = Array.from({ length: 20 }, (_, index) => `T${index + 1}`);
 const SESSION_KEY = "mci-triage-sessions-v1";
 const DRAFT_KEY = "mci-triage-current-draft-v1";
 const ADMIN_KEY = "mci-triage-admin-passcode-v1";
@@ -77,16 +90,7 @@ const TAG_LABELS: Record<Tag, string> = {
   BLACK: "Black",
 };
 
-const DAYS: { key: DayKey; label: string; ready: boolean }[] = [
-  { key: "day1", label: "Day 1", ready: true },
-  { key: "day2", label: "Day 2", ready: false },
-  { key: "day3", label: "Day 3", ready: false },
-];
-
-const DAY_ONE_VICTIMS: {
-  id: string;
-  correct: Record<Method, { tags: Tag[]; note?: string }>;
-}[] = [
+const DAY_ONE_VICTIMS: VictimRecord[] = [
   { id: "T1", correct: { START: { tags: ["GREEN"] }, SIEVE: { tags: ["GREEN"] } } },
   { id: "T2", correct: { START: { tags: ["YELLOW"] }, SIEVE: { tags: ["YELLOW"] } } },
   { id: "T3", correct: { START: { tags: ["GREEN"] }, SIEVE: { tags: ["GREEN"] } } },
@@ -121,6 +125,99 @@ const DAY_ONE_VICTIMS: {
   },
 ];
 
+const DAY_TWO_VICTIMS: VictimRecord[] = [
+  {
+    id: "T1",
+    correct: {
+      SAVE: {
+        tags: ["RED", "YELLOW", "BLACK"],
+        note: "RED=head injury; YELLOW=intoxication; BLACK if no NSS",
+      },
+      SORT: { tags: ["YELLOW"] },
+    },
+  },
+  { id: "T2", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["YELLOW"] } } },
+  { id: "T3", correct: { SAVE: { tags: ["YELLOW"] }, SORT: { tags: ["GREEN"] } } },
+  {
+    id: "T4",
+    correct: {
+      SAVE: {
+        tags: ["GREEN", "RED"],
+        note: "RED if wound not packed in 5 mins of being seen",
+      },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  { id: "T5", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["GREEN"] } } },
+  { id: "T6", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["GREEN"] } } },
+  { id: "T7", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["RED"] } } },
+  { id: "T8", correct: { SAVE: { tags: ["YELLOW"] }, SORT: { tags: ["GREEN"] } } },
+  { id: "T9", correct: { SAVE: { tags: ["BLACK"] }, SORT: { tags: ["RED"] } } },
+  { id: "T10", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["YELLOW"] } } },
+  { id: "T11", correct: { SAVE: { tags: ["GREEN"] }, SORT: { tags: ["GREEN"] } } },
+  {
+    id: "T12",
+    correct: {
+      SAVE: { tags: ["RED"] },
+      SORT: { tags: ["YELLOW", "RED"], note: "RED if TP develops" },
+    },
+  },
+  { id: "T13", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["RED"] } } },
+  { id: "T14", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["YELLOW"] } } },
+  { id: "T15", correct: { SAVE: { tags: ["BLACK"] }, SORT: { tags: ["BLACK"] } } },
+  { id: "T16", correct: { SAVE: { tags: ["YELLOW"] }, SORT: { tags: ["GREEN"] } } },
+  { id: "T17", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["RED"] } } },
+  { id: "T18", correct: { SAVE: { tags: ["RED"] }, SORT: { tags: ["YELLOW"] } } },
+  { id: "T19", correct: { SAVE: { tags: ["GREEN"] }, SORT: { tags: ["GREEN"] } } },
+  {
+    id: "T20",
+    correct: {
+      SAVE: { tags: ["GREEN"] },
+      SORT: {
+        tags: ["BLACK", "RED"],
+        note: "BLACK if not revived; RED if revived",
+      },
+    },
+  },
+];
+
+const DAY_CONFIGS: Record<DayKey, DayConfig> = {
+  day1: {
+    key: "day1",
+    label: "Day 1",
+    ready: true,
+    setTitle: "Primary Triage-T Set",
+    methods: ["START", "SIEVE"],
+    victims: DAY_ONE_VICTIMS,
+  },
+  day2: {
+    key: "day2",
+    label: "Day 2",
+    ready: true,
+    setTitle: "Secondary Triage-T Set",
+    methods: ["SAVE", "SORT"],
+    victims: DAY_TWO_VICTIMS,
+  },
+  day3: {
+    key: "day3",
+    label: "Day 3",
+    ready: false,
+    setTitle: "Pending Triage-T Set",
+    methods: ["SAVE", "SORT"],
+    victims: DAY_TWO_VICTIMS,
+  },
+};
+
+const DAYS = Object.values(DAY_CONFIGS).map(({ key, label, ready }) => ({
+  key,
+  label,
+  ready,
+}));
+
+function getDayConfig(day: DayKey) {
+  return DAY_CONFIGS[day] ?? DAY_CONFIGS.day1;
+}
+
 function newId() {
   return globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}`;
 }
@@ -130,32 +227,58 @@ function todayInputValue() {
 }
 
 function emptyAnswers() {
-  return Object.fromEntries(DAY_ONE_VICTIMS.map((victim) => [victim.id, ""])) as Record<
+  return Object.fromEntries(ALL_VICTIM_IDS.map((victimId) => [victimId, ""])) as Record<
     string,
     Answer
   >;
 }
 
-function createMember(index: number): MemberRecord {
+function createMethodRecord(existing?: MethodRecord): MethodRecord {
   return {
-    id: `member-${index + 1}`,
-    name: "",
-    START: { answers: emptyAnswers(), timer: { elapsedMs: 0, startedAt: null } },
-    SIEVE: { answers: emptyAnswers(), timer: { elapsedMs: 0, startedAt: null } },
+    answers: { ...emptyAnswers(), ...(existing?.answers ?? {}) },
+    timer: existing?.timer ?? { elapsedMs: 0, startedAt: null },
   };
 }
 
-function createSession(): EvaluationSession {
+function ensureMemberShape(member: Partial<MemberRecord> & { id: string }): MemberRecord {
+  const shaped = {
+    id: member.id,
+    name: member.name ?? "",
+  } as MemberRecord;
+
+  ALL_METHODS.forEach((method) => {
+    shaped[method] = createMethodRecord(member[method]);
+  });
+
+  return shaped;
+}
+
+function createMember(index: number): MemberRecord {
+  return ensureMemberShape({
+    id: `member-${index + 1}`,
+    name: "",
+  });
+}
+
+function createSession(day: DayKey = "day1"): EvaluationSession {
   const now = new Date().toISOString();
   return {
     id: newId(),
-    day: "day1",
+    day,
     evaluatorName: "",
     evaluationDate: todayInputValue(),
     teamName: "",
     members: Array.from({ length: 6 }, (_, index) => createMember(index)),
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+function ensureSessionShape(session: EvaluationSession): EvaluationSession {
+  return {
+    ...session,
+    day: DAY_CONFIGS[session.day] ? session.day : "day1",
+    members: session.members.map(ensureMemberShape),
   };
 }
 
@@ -176,11 +299,12 @@ function formatClock(ms: number) {
 
 function normalizeTimers(session: EvaluationSession): EvaluationSession {
   const now = Date.now();
+  const shapedSession = ensureSessionShape(session);
   return {
-    ...session,
-    members: session.members.map((member) => {
-      const normalized = { ...member };
-      METHODS.forEach((method) => {
+    ...shapedSession,
+    members: shapedSession.members.map((member) => {
+      const normalized = { ...member } as MemberRecord;
+      ALL_METHODS.forEach((method) => {
         normalized[method] = {
           ...member[method],
           timer: { elapsedMs: timerMs(member[method].timer, now), startedAt: null },
@@ -192,15 +316,21 @@ function normalizeTimers(session: EvaluationSession): EvaluationSession {
   };
 }
 
-function scoreMember(member: MemberRecord, method: Method, now = Date.now()) {
-  const correct = DAY_ONE_VICTIMS.reduce((total, victim) => {
+function scoreMember(
+  member: MemberRecord,
+  config: DayConfig,
+  method: Method,
+  now = Date.now(),
+) {
+  const correct = config.victims.reduce((total, victim) => {
     const answer = member[method].answers[victim.id];
-    return answer && victim.correct[method].tags.includes(answer) ? total + 1 : total;
+    const correctTags = victim.correct[method]?.tags ?? [];
+    return answer && correctTags.includes(answer) ? total + 1 : total;
   }, 0);
-  const attempted = DAY_ONE_VICTIMS.reduce((total, victim) => {
+  const attempted = config.victims.reduce((total, victim) => {
     return member[method].answers[victim.id] ? total + 1 : total;
   }, 0);
-  const total = DAY_ONE_VICTIMS.length;
+  const total = config.victims.length;
   const elapsedMs = timerMs(member[method].timer, now);
 
   return {
@@ -212,10 +342,10 @@ function scoreMember(member: MemberRecord, method: Method, now = Date.now()) {
   };
 }
 
-function memberHasData(member: MemberRecord) {
+function memberHasData(member: MemberRecord, methods = ALL_METHODS) {
   return (
     member.name.trim().length > 0 ||
-    METHODS.some((method) => {
+    methods.some((method) => {
       const record = member[method];
       return (
         timerMs(record.timer) > 0 ||
@@ -231,9 +361,9 @@ function csvCell(value: string | number) {
 }
 
 function buildCsv(sessions: EvaluationSession[]) {
-  const victimHeaders = DAY_ONE_VICTIMS.flatMap((victim) => [
-    `${victim.id}_answer`,
-    `${victim.id}_correct`,
+  const victimHeaders = ALL_VICTIM_IDS.flatMap((victimId) => [
+    `${victimId}_answer`,
+    `${victimId}_correct`,
   ]);
   const rows: (string | number)[][] = [
     [
@@ -252,13 +382,16 @@ function buildCsv(sessions: EvaluationSession[]) {
     ],
   ];
 
-  sessions.forEach((session) => {
-    session.members.filter(memberHasData).forEach((member, memberIndex) => {
-      METHODS.forEach((method) => {
-        const score = scoreMember(member, method);
+  sessions.map(ensureSessionShape).forEach((session) => {
+    const config = getDayConfig(session.day);
+    session.members
+      .filter((member) => memberHasData(member, config.methods))
+      .forEach((member, memberIndex) => {
+      config.methods.forEach((method) => {
+        const score = scoreMember(member, config, method);
         rows.push([
           session.id,
-          "Day 1",
+          config.label,
           session.evaluationDate,
           session.evaluatorName,
           session.teamName,
@@ -268,9 +401,11 @@ function buildCsv(sessions: EvaluationSession[]) {
           score.total,
           Math.round(score.accuracy * 100),
           score.timeSeconds,
-          ...DAY_ONE_VICTIMS.flatMap((victim) => {
-            const answer = member[method].answers[victim.id];
-            const isCorrect = answer && victim.correct[method].tags.includes(answer);
+          ...ALL_VICTIM_IDS.flatMap((victimId) => {
+            const victim = config.victims.find((item) => item.id === victimId);
+            const answer = member[method].answers[victimId];
+            const isCorrect =
+              answer && (victim?.correct[method]?.tags ?? []).includes(answer);
             return [answer || "", isCorrect ? "yes" : "no"];
           }),
         ]);
@@ -340,8 +475,12 @@ export function TriageApp() {
 
       const savedSessions = localStorage.getItem(SESSION_KEY);
       const savedDraft = localStorage.getItem(DRAFT_KEY);
-      setSessions(savedSessions ? JSON.parse(savedSessions) : []);
-      setSession(savedDraft ? JSON.parse(savedDraft) : createSession());
+      setSessions(
+        savedSessions
+          ? (JSON.parse(savedSessions) as EvaluationSession[]).map(ensureSessionShape)
+          : [],
+      );
+      setSession(savedDraft ? ensureSessionShape(JSON.parse(savedDraft)) : createSession());
       setAdminPasscodeExists(Boolean(localStorage.getItem(ADMIN_KEY)));
       setHydrated(true);
     });
@@ -378,49 +517,60 @@ export function TriageApp() {
     }
   }, [hydrated, sessions]);
 
+  const dayConfig = getDayConfig(session?.day ?? "day1");
   const activeMember = session?.members[activeMemberIndex] ?? null;
   const activeStats = useMemo(() => {
     if (!activeMember) {
       return null;
     }
 
-    return {
-      START: scoreMember(activeMember, "START", now),
-      SIEVE: scoreMember(activeMember, "SIEVE", now),
-    };
-  }, [activeMember, now]);
+    return Object.fromEntries(
+      dayConfig.methods.map((method) => [
+        method,
+        scoreMember(activeMember, dayConfig, method, now),
+      ]),
+    ) as Record<Method, ReturnType<typeof scoreMember>>;
+  }, [activeMember, dayConfig, now]);
 
   const analytics = useMemo(() => {
-    const rows = sessions.flatMap((savedSession) =>
-      savedSession.members.filter(memberHasData).flatMap((member, memberIndex) =>
-        METHODS.map((method) => ({
+    const rows = sessions.map(ensureSessionShape).flatMap((savedSession) => {
+      const config = getDayConfig(savedSession.day);
+      return savedSession.members
+        .filter((member) => memberHasData(member, config.methods))
+        .flatMap((member, memberIndex) =>
+        config.methods.map((method) => ({
           session: savedSession,
+          config,
           member,
           memberName: member.name || `Member ${memberIndex + 1}`,
           method,
-          score: scoreMember(member, method, now),
+          score: scoreMember(member, config, method, now),
         })),
-      ),
-    );
+      );
+    });
     const participants = new Set(
       rows.map((row) => `${row.session.id}:${row.member.id}`),
     ).size;
-    const startRows = rows.filter((row) => row.method === "START");
-    const sieveRows = rows.filter((row) => row.method === "SIEVE");
+    const methods = Object.fromEntries(
+      ALL_METHODS.map((method) => {
+        const methodRows = rows.filter((row) => row.method === method);
+        return [
+          method,
+          {
+            count: methodRows.length,
+            accuracy: average(methodRows.map((row) => row.score.accuracy)),
+            time: average(methodRows.map((row) => row.score.timeSeconds)),
+          },
+        ];
+      }),
+    ) as Record<Method, { count: number; accuracy: number; time: number }>;
 
     return {
       rows,
       participants,
       averageAccuracy: average(rows.map((row) => row.score.accuracy)),
       averageTime: average(rows.map((row) => row.score.timeSeconds)),
-      START: {
-        accuracy: average(startRows.map((row) => row.score.accuracy)),
-        time: average(startRows.map((row) => row.score.timeSeconds)),
-      },
-      SIEVE: {
-        accuracy: average(sieveRows.map((row) => row.score.accuracy)),
-        time: average(sieveRows.map((row) => row.score.timeSeconds)),
-      },
+      methods,
     };
   }, [sessions, now]);
 
@@ -430,7 +580,8 @@ export function TriageApp() {
         return current;
       }
 
-      return { ...updater(current), updatedAt: new Date().toISOString() };
+      const updated = updater(ensureSessionShape(current));
+      return ensureSessionShape({ ...updated, updatedAt: new Date().toISOString() });
     });
   }
 
@@ -491,6 +642,39 @@ export function TriageApp() {
     }));
   }
 
+  function switchDay(day: DayKey) {
+    updateSession((current) => ({ ...current, day }));
+    setActiveMemberIndex(0);
+    setStatus(`${getDayConfig(day).label} score sheet ready.`);
+  }
+
+  function addMember() {
+    if (!session) {
+      return;
+    }
+
+    const nextIndex = session.members.length;
+    updateSession((current) => ({
+      ...current,
+      members: [...current.members, createMember(current.members.length)],
+    }));
+    setActiveMemberIndex(nextIndex);
+    setStatus(`Added Member ${nextIndex + 1}.`);
+  }
+
+  function removeMember(memberId: string, memberIndex: number) {
+    if (!session || memberIndex < 6) {
+      return;
+    }
+
+    updateSession((current) => ({
+      ...current,
+      members: current.members.filter((member) => member.id !== memberId),
+    }));
+    setActiveMemberIndex((current) => Math.max(0, Math.min(current, session.members.length - 2)));
+    setStatus(`Removed Member ${memberIndex + 1}.`);
+  }
+
   function saveCurrent() {
     if (!session) {
       return;
@@ -502,11 +686,13 @@ export function TriageApp() {
       frozen,
       ...current.filter((savedSession) => savedSession.id !== frozen.id),
     ]);
-    setStatus("Saved Day 1 score sheet.");
+    setStatus(`Saved ${getDayConfig(frozen.day).label} score sheet.`);
   }
 
   function createNewSheet() {
-    const hasDraft = session?.members.some(memberHasData) || session?.evaluatorName;
+    const hasDraft =
+      session?.members.some((member) => memberHasData(member, dayConfig.methods)) ||
+      session?.evaluatorName;
     if (
       hasDraft &&
       !window.confirm("Start a new score sheet? Unsaved changes stay only in exports.")
@@ -514,9 +700,9 @@ export function TriageApp() {
       return;
     }
 
-    setSession(createSession());
+    setSession(createSession(session?.day ?? "day1"));
     setActiveMemberIndex(0);
-    setStatus("New Day 1 sheet ready.");
+    setStatus(`New ${dayConfig.label} sheet ready.`);
   }
 
   function exportCurrent(format: "csv" | "json") {
@@ -525,13 +711,14 @@ export function TriageApp() {
     }
 
     const frozen = normalizeTimers(session);
+    const config = getDayConfig(frozen.day);
     if (format === "csv") {
-      downloadFile("day-1-triage-current.csv", buildCsv([frozen]), "text/csv");
+      downloadFile(`${config.label.toLowerCase().replace(" ", "-")}-triage-current.csv`, buildCsv([frozen]), "text/csv");
       return;
     }
 
     downloadFile(
-      "day-1-triage-current.json",
+      `${config.label.toLowerCase().replace(" ", "-")}-triage-current.json`,
       JSON.stringify({ exportedAt: new Date().toISOString(), sessions: [frozen] }, null, 2),
       "application/json",
     );
@@ -589,7 +776,9 @@ export function TriageApp() {
       const text = await file.text();
       const parsed = JSON.parse(text) as { sessions?: EvaluationSession[] } | EvaluationSession[];
       const incoming = Array.isArray(parsed) ? parsed : parsed.sessions ?? [];
-      const validSessions = incoming.filter((item) => item?.id && Array.isArray(item.members));
+      const validSessions = incoming
+        .filter((item) => item?.id && Array.isArray(item.members))
+        .map(ensureSessionShape);
       setSessions((current) => {
         const merged = new Map(current.map((item) => [item.id, item]));
         validSessions.forEach((item) => merged.set(item.id, item));
@@ -632,7 +821,7 @@ export function TriageApp() {
             T
           </div>
           <div>
-            <p className="eyebrow">Primary Triage-T Set</p>
+            <p className="eyebrow">{dayConfig.setTitle}</p>
             <h1>MCI Triage Evaluation</h1>
           </div>
         </div>
@@ -651,7 +840,7 @@ export function TriageApp() {
             className={day.key === session.day ? "day-pill active" : "day-pill"}
             type="button"
             disabled={!day.ready}
-            onClick={() => updateSession((current) => ({ ...current, day: day.key }))}
+            onClick={() => switchDay(day.key)}
           >
             <CalendarDays size={18} aria-hidden="true" />
             <span>{day.label}</span>
@@ -721,26 +910,45 @@ export function TriageApp() {
           </section>
 
           <section className="member-panel">
-            <div className="section-title">
-              <Users size={20} aria-hidden="true" />
-              <h2>Group Members</h2>
+            <div className="member-panel-header">
+              <div className="section-title">
+                <Users size={20} aria-hidden="true" />
+                <h2>Group Members</h2>
+              </div>
+              <button className="ghost-button add-member-button" type="button" onClick={addMember}>
+                <Plus size={18} aria-hidden="true" />
+                Add Member
+              </button>
             </div>
             <div className="member-name-grid">
               {session.members.map((member, index) => (
-                <label key={member.id}>
-                  {`Member ${index + 1}`}
-                  <input
-                    value={member.name}
-                    onFocus={() => setActiveMemberIndex(index)}
-                    onChange={(event) =>
-                      updateMember(member.id, (current) => ({
-                        ...current,
-                        name: event.target.value,
-                      }))
-                    }
-                    placeholder="Surname"
-                  />
-                </label>
+                <div className="member-field" key={member.id}>
+                  <label>
+                    {`Member ${index + 1}`}
+                    <input
+                      value={member.name}
+                      onFocus={() => setActiveMemberIndex(index)}
+                      onChange={(event) =>
+                        updateMember(member.id, (current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="Surname"
+                    />
+                  </label>
+                  {index >= 6 ? (
+                    <button
+                      className="icon-button danger-icon member-remove"
+                      type="button"
+                      title={`Remove Member ${index + 1}`}
+                      aria-label={`Remove Member ${index + 1}`}
+                      onClick={() => removeMember(member.id, index)}
+                    >
+                      <Trash2 size={17} aria-hidden="true" />
+                    </button>
+                  ) : null}
+                </div>
               ))}
             </div>
           </section>
@@ -748,8 +956,10 @@ export function TriageApp() {
           <section className="workbench">
             <aside className="member-rail" aria-label="Select member">
               {session.members.map((member, index) => {
-                const start = scoreMember(member, "START", now);
-                const sieve = scoreMember(member, "SIEVE", now);
+                const methodScores = dayConfig.methods.map((method) => ({
+                  method,
+                  score: scoreMember(member, dayConfig, method, now),
+                }));
                 return (
                   <button
                     key={member.id}
@@ -759,22 +969,23 @@ export function TriageApp() {
                   >
                     <strong>{member.name || `Member ${index + 1}`}</strong>
                     <span>
-                      START {start.correct}/{start.total} - SIEVE {sieve.correct}/
-                      {sieve.total}
+                      {methodScores
+                        .map(({ method, score }) => `${method} ${score.correct}/${score.total}`)
+                        .join(" - ")}
                     </span>
                   </button>
                 );
               })}
             </aside>
 
-            <section className="score-sheet" aria-label="Day 1 score sheet">
+            <section className="score-sheet" aria-label={`${dayConfig.label} score sheet`}>
               <div className="score-header">
                 <div>
                   <p className="eyebrow">Scoring</p>
                   <h2>{activeMember.name || `Member ${activeMemberIndex + 1}`}</h2>
                 </div>
                 <div className="score-totals">
-                  {METHODS.map((method) => (
+                  {dayConfig.methods.map((method) => (
                     <span key={method}>
                       {method}: {activeStats[method].correct}/{activeStats[method].total}
                     </span>
@@ -783,7 +994,7 @@ export function TriageApp() {
               </div>
 
               <div className="timer-grid">
-                {METHODS.map((method) => {
+                {dayConfig.methods.map((method) => {
                   const timer = activeMember[method].timer;
                   const running = Boolean(timer.startedAt);
                   const seconds = Math.round(timerMs(timer, now) / 1000);
@@ -834,7 +1045,7 @@ export function TriageApp() {
               </div>
 
               <div className="progress-strip" aria-label="Active member progress">
-                {METHODS.map((method) => {
+                {dayConfig.methods.map((method) => {
                   const score = activeStats[method];
                   const attemptedPercent = Math.round((score.attempted / score.total) * 100);
                   return (
@@ -858,15 +1069,15 @@ export function TriageApp() {
               </div>
 
               <div className="victim-list">
-                {DAY_ONE_VICTIMS.map((victim) => (
+                {dayConfig.victims.map((victim) => (
                   <article className="victim-card" key={victim.id}>
                     <div className="victim-key">
                       <strong>{victim.id}</strong>
                       <div>
-                        {METHODS.map((method) => (
+                        {dayConfig.methods.map((method) => (
                           <span key={method}>
                             {method}{" "}
-                            {victim.correct[method].tags.map((tag) => (
+                            {(victim.correct[method]?.tags ?? []).map((tag) => (
                               <b className={`tag-chip ${tagClass(tag)}`} key={tag}>
                                 {TAG_LABELS[tag]}
                               </b>
@@ -874,17 +1085,17 @@ export function TriageApp() {
                           </span>
                         ))}
                       </div>
-                      {METHODS.map((method) =>
-                        victim.correct[method].note ? (
-                          <small key={method}>{`${method}: ${victim.correct[method].note}`}</small>
+                      {dayConfig.methods.map((method) =>
+                        victim.correct[method]?.note ? (
+                          <small key={method}>{`${method}: ${victim.correct[method]?.note}`}</small>
                         ) : null,
                       )}
                     </div>
 
-                    {METHODS.map((method) => {
+                    {dayConfig.methods.map((method) => {
                       const selected = activeMember[method].answers[victim.id];
                       const isCorrect =
-                        selected && victim.correct[method].tags.includes(selected);
+                        selected && (victim.correct[method]?.tags ?? []).includes(selected);
                       return (
                         <div className="answer-block" key={method}>
                           <div className="answer-heading">
@@ -982,7 +1193,7 @@ export function TriageApp() {
               <div className="admin-header">
                 <div>
                   <p className="eyebrow">Admin Analytics</p>
-                  <h2>Day 1 Results</h2>
+                  <h2>Training Results</h2>
                 </div>
                 <div className="admin-actions">
                   <input
@@ -1031,7 +1242,10 @@ export function TriageApp() {
               </div>
 
               <div className="analytics-grid">
-                {METHODS.map((method) => (
+                {(ALL_METHODS.some((method) => analytics.methods[method].count > 0)
+                  ? ALL_METHODS.filter((method) => analytics.methods[method].count > 0)
+                  : dayConfig.methods
+                ).map((method) => (
                   <article className="chart-card" key={method}>
                     <div className="section-title">
                       <BarChart3 size={20} aria-hidden="true" />
@@ -1040,20 +1254,24 @@ export function TriageApp() {
                     <div className="bar-row">
                       <span>Accuracy</span>
                       <div>
-                        <i style={{ width: `${Math.round(analytics[method].accuracy * 100)}%` }} />
+                        <i
+                          style={{
+                            width: `${Math.round(analytics.methods[method].accuracy * 100)}%`,
+                          }}
+                        />
                       </div>
-                      <strong>{Math.round(analytics[method].accuracy * 100)}%</strong>
+                      <strong>{Math.round(analytics.methods[method].accuracy * 100)}%</strong>
                     </div>
                     <div className="bar-row speed">
                       <span>Speed</span>
                       <div>
                         <i
                           style={{
-                            width: `${Math.min(100, Math.round(analytics[method].time / 3))}%`,
+                            width: `${Math.min(100, Math.round(analytics.methods[method].time / 3))}%`,
                           }}
                         />
                       </div>
-                      <strong>{Math.round(analytics[method].time)}s</strong>
+                      <strong>{Math.round(analytics.methods[method].time)}s</strong>
                     </div>
                   </article>
                 ))}
@@ -1070,6 +1288,7 @@ export function TriageApp() {
                     <table>
                       <thead>
                         <tr>
+                          <th>Day</th>
                           <th>Date</th>
                           <th>Evaluator</th>
                           <th>Group</th>
@@ -1081,15 +1300,20 @@ export function TriageApp() {
                       </thead>
                       <tbody>
                         {sessions.map((savedSession) => {
-                          const members = savedSession.members.filter(memberHasData);
+                          const shapedSession = ensureSessionShape(savedSession);
+                          const config = getDayConfig(shapedSession.day);
+                          const members = shapedSession.members.filter((member) =>
+                            memberHasData(member, config.methods),
+                          );
                           const scores = members.flatMap((member) =>
-                            METHODS.map((method) => scoreMember(member, method)),
+                            config.methods.map((method) => scoreMember(member, config, method)),
                           );
                           return (
-                            <tr key={savedSession.id}>
-                              <td>{savedSession.evaluationDate}</td>
-                              <td>{savedSession.evaluatorName || "Not set"}</td>
-                              <td>{savedSession.teamName || "Not set"}</td>
+                            <tr key={shapedSession.id}>
+                              <td>{config.label}</td>
+                              <td>{shapedSession.evaluationDate}</td>
+                              <td>{shapedSession.evaluatorName || "Not set"}</td>
+                              <td>{shapedSession.teamName || "Not set"}</td>
                               <td>{members.length}</td>
                               <td>
                                 {Math.round(average(scores.map((item) => item.accuracy)) * 100)}%
@@ -1106,7 +1330,7 @@ export function TriageApp() {
                                   onClick={() => {
                                     if (window.confirm("Delete this saved score sheet?")) {
                                       setSessions((current) =>
-                                        current.filter((item) => item.id !== savedSession.id),
+                                        current.filter((item) => item.id !== shapedSession.id),
                                       );
                                     }
                                   }}
