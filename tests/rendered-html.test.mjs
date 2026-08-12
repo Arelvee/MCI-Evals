@@ -55,14 +55,15 @@ test("ships Day 1 and Day 2 scoring with PWA assets", async () => {
   assert.match(app, /SORT/);
   assert.match(app, /Add Member/);
   assert.match(app, /removeMember/);
-  assert.match(app, /Please install this app/);
+  assert.match(app, /Install this app/);
+  assert.match(app, /MciTriageLogo/);
   assert.match(app, /Install App/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
   assert.match(layout, /manifest: "\/manifest.webmanifest"/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v1"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v2"/);
   assert.match(packageJson, /"lucide-react"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.doesNotMatch(app, /_sites-preview|codex-preview/);

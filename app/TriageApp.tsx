@@ -16,6 +16,7 @@ import {
   Trash2,
   Upload,
   Users,
+  X,
 } from "lucide-react";
 import {
   ChangeEvent,
@@ -456,6 +457,24 @@ function appIsStandalone() {
   );
 }
 
+function MciTriageLogo({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={compact ? "mci-logo compact" : "mci-logo"} aria-hidden="true">
+      <span className="mci-logo-mark">
+        <span className="mci-logo-cross" />
+        <span className="mci-logo-dot green" />
+        <span className="mci-logo-dot yellow" />
+        <span className="mci-logo-dot red" />
+        <span className="mci-logo-dot black" />
+      </span>
+      <span className="mci-logo-type">
+        <strong>MCI</strong>
+        <small>Triage</small>
+      </span>
+    </div>
+  );
+}
+
 export function TriageApp() {
   const [hydrated, setHydrated] = useState(false);
   const [session, setSession] = useState<EvaluationSession | null>(null);
@@ -826,6 +845,7 @@ export function TriageApp() {
 
   async function installApp() {
     if (!installPrompt) {
+      setStatus("Use the browser install menu, or Share > Add to Home Screen on iPhone/iPad.");
       return;
     }
 
@@ -844,7 +864,7 @@ export function TriageApp() {
   if (!hydrated || !session || !activeMember || !activeStats) {
     return (
       <main className="app-shell loading-shell">
-        <div className="brand-mark">T</div>
+        <MciTriageLogo compact />
         <p>Loading score sheet...</p>
       </main>
     );
@@ -854,9 +874,7 @@ export function TriageApp() {
     <main className="app-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">
-            T
-          </div>
+          <MciTriageLogo />
           <div>
             <p className="eyebrow">{dayConfig.setTitle}</p>
             <h1>MCI Triage Evaluation</h1>
@@ -871,35 +889,38 @@ export function TriageApp() {
       </header>
 
       {installBannerOpen && !standalone ? (
-        <section className="install-banner" aria-live="polite">
-          <div>
-            <p className="eyebrow">Installable PWA</p>
-            <h2>Please install this app</h2>
-            <p>
-              Add MCI Triage Evaluation to your device for faster access and offline
-              score-sheet use.
-            </p>
+        <aside className="install-popout" aria-label="Install app reminder" aria-live="polite">
+          <button
+            className="icon-button install-close"
+            type="button"
+            title="Dismiss install reminder"
+            aria-label="Dismiss install reminder"
+            onClick={() => setInstallBannerOpen(false)}
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+          <div className="install-popout-head">
+            <MciTriageLogo compact />
+            <div>
+              <p className="eyebrow">PWA Ready</p>
+              <h2>Install this app</h2>
+            </div>
           </div>
+          <p>
+            Save MCI Triage to this device for faster access and offline score-sheet use.
+          </p>
           <div className="install-actions">
-            {installPrompt ? (
-              <button className="primary-button" type="button" onClick={installApp}>
-                <Download size={18} aria-hidden="true" />
-                Install App
-              </button>
-            ) : (
-              <span className="install-tip">
-                iPhone/iPad: tap Share, then Add to Home Screen.
-              </span>
-            )}
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={() => setInstallBannerOpen(false)}
-            >
-              Later
+            <button className="primary-button" type="button" onClick={installApp}>
+              <Download size={18} aria-hidden="true" />
+              {installPrompt ? "Install App" : "How to Install"}
             </button>
+            {!installPrompt ? (
+              <span className="install-tip">
+                iPhone/iPad: Share, then Add to Home Screen.
+              </span>
+            ) : null}
           </div>
-        </section>
+        </aside>
       ) : null}
 
       <section className="day-switcher" aria-label="Training day">
