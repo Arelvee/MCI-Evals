@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7faf6;
-  --foreground: #102018;
-  --brand: #11683e;
-  --brand-2: #15803d;
-  --success: #147a45;
+  --background: #f4f8f1;
+  --foreground: #122018;
+  --brand: #0f6b3e;
+  --brand-2: #138a4f;
+  --success: #0f7a45;
   --warning: #9a6400;
   --danger: #b42318;
-  --ink: #102018;
+  --ink: #122018;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -30,10 +30,10 @@
   body {
     @apply m-0 bg-stone-50 text-slate-900 antialiased;
     background:
-      linear-gradient(135deg, rgba(22, 101, 52, 0.08), transparent 34%),
-      linear-gradient(315deg, rgba(132, 204, 22, 0.06), transparent 38%),
+      linear-gradient(180deg, rgba(240, 253, 244, 0.92), rgba(245, 245, 244, 0.98) 46%),
+      linear-gradient(90deg, rgba(15, 107, 62, 0.05), transparent 34%),
       var(--background);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-manrope), "Segoe UI", Arial, Helvetica, sans-serif;
   }
 
   button,
@@ -50,11 +50,11 @@
   }
 
   input {
-    @apply min-h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-slate-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
+    @apply min-h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-[0.95rem] text-slate-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
   }
 
   label {
-    @apply grid gap-1.5 text-[0.7rem] font-black uppercase tracking-normal text-stone-500;
+    @apply grid gap-1.5 text-[0.68rem] font-extrabold uppercase tracking-[0.02em] text-stone-500;
   }
 
   h1,
@@ -65,15 +65,15 @@
   }
 
   h1 {
-    @apply mb-0 text-xl font-black leading-tight text-white sm:text-2xl;
+    @apply mb-0 text-xl font-extrabold leading-tight text-emerald-950 sm:text-2xl;
   }
 
   h2 {
-    @apply mb-0 text-lg font-black tracking-normal text-slate-950;
+    @apply mb-0 text-lg font-extrabold tracking-normal text-slate-950;
   }
 
   h3 {
-    @apply mb-0 text-base font-black text-slate-950;
+    @apply mb-0 text-base font-extrabold text-slate-950;
   }
 
   table {
@@ -82,17 +82,17 @@
 
   th,
   td {
-    @apply border-b border-slate-200 px-3 py-3 text-left align-middle;
+    @apply border-b border-stone-200 px-3 py-2.5 text-left align-middle;
   }
 
   th {
-    @apply bg-slate-50 text-[0.72rem] font-black uppercase text-slate-500;
+    @apply bg-stone-50 text-[0.72rem] font-extrabold uppercase text-stone-500;
   }
 }
 
 @layer components {
   .app-shell {
-    @apply mx-auto min-h-screen w-full max-w-[1360px] px-3 py-3 sm:px-5 lg:px-6;
+    @apply mx-auto min-h-screen w-full max-w-[1440px] px-3 py-3 sm:px-5 lg:px-6;
   }
 
   .loading-shell {
@@ -100,11 +100,7 @@
   }
 
   .topbar {
-    @apply mb-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-700/20 bg-emerald-800 p-3 shadow-sm sm:p-4;
-    background:
-      linear-gradient(135deg, rgba(34, 197, 94, 0.26), transparent 38%),
-      linear-gradient(315deg, rgba(20, 83, 45, 0.34), transparent 36%),
-      #11683e;
+    @apply mb-3 flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 backdrop-blur sm:p-4;
   }
 
   .brand-lockup {
@@ -112,15 +108,15 @@
   }
 
   .brand-mark {
-    @apply grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white text-lg font-black text-emerald-800 shadow-sm;
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-md bg-emerald-700 text-lg font-extrabold text-white shadow-sm;
   }
 
   .eyebrow {
-    @apply mb-1 text-[0.7rem] font-black uppercase tracking-normal text-slate-500;
+    @apply mb-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-stone-500;
   }
 
   .topbar .eyebrow {
-    @apply text-emerald-50;
+    @apply text-emerald-700;
   }
 
   .day-switcher {
@@ -128,15 +124,15 @@
   }
 
   .day-pill {
-    @apply flex min-h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400;
+    @apply flex min-h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none;
   }
 
   .day-pill span {
-    @apply font-black;
+    @apply font-extrabold;
   }
 
   .day-pill small {
-    @apply block w-full text-center text-[0.7rem] font-bold text-slate-500;
+    @apply block w-full text-center text-[0.68rem] font-bold text-stone-500;
   }
 
   .day-pill.active {
@@ -152,7 +148,7 @@
   }
 
   .view-switcher button {
-    @apply flex min-h-9 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-black text-stone-500 transition hover:bg-stone-100;
+    @apply flex min-h-9 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-extrabold text-stone-500 transition hover:bg-stone-100;
   }
 
   .view-switcher button.active {
@@ -160,11 +156,11 @@
   }
 
   .identity-grid {
-    @apply mb-3 grid gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 sm:grid-cols-3;
+    @apply mb-3 grid gap-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 sm:grid-cols-3;
   }
 
   .member-panel {
-    @apply mb-3 rounded-lg border border-stone-200 bg-white/90 p-3;
+    @apply mb-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5;
   }
 
   .member-panel-header {
@@ -180,11 +176,11 @@
   }
 
   .member-name-grid {
-    @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6;
+    @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4;
   }
 
   .member-field {
-    @apply grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-stone-100 bg-stone-50/60 p-2;
+    @apply grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-stone-200 bg-stone-50/70 p-2.5 transition focus-within:border-emerald-300 focus-within:bg-white;
   }
 
   .member-field label {
@@ -200,7 +196,7 @@
   }
 
   .workbench {
-    @apply grid items-start gap-3 lg:grid-cols-[220px_minmax(0,1fr)];
+    @apply grid items-start gap-3 lg:grid-cols-[260px_minmax(0,1fr)];
   }
 
   .member-rail {
@@ -208,19 +204,27 @@
   }
 
   .member-rail button {
-    @apply grid min-h-[62px] min-w-[190px] gap-1 rounded-md border border-stone-200 bg-white p-2.5 text-left text-slate-900 transition hover:border-emerald-300 hover:bg-emerald-50 lg:min-w-0;
+    @apply grid min-h-[72px] min-w-[210px] gap-1 rounded-md border border-stone-200 bg-white p-2.5 text-left text-slate-900 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 hover:bg-emerald-50 lg:min-w-0;
   }
 
   .member-rail button.active {
-    @apply border-emerald-600 bg-emerald-50 ring-1 ring-emerald-100;
+    @apply border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100;
   }
 
   .member-rail strong {
-    @apply truncate text-sm font-black;
+    @apply truncate text-sm font-extrabold text-slate-950;
   }
 
   .member-rail span {
-    @apply text-xs font-bold text-slate-500;
+    @apply text-xs font-bold text-stone-500;
+  }
+
+  .member-index {
+    @apply text-[0.66rem] font-extrabold uppercase tracking-[0.08em] text-emerald-700;
+  }
+
+  .member-score-line {
+    @apply text-[0.72rem] leading-snug;
   }
 
   .score-sheet {
@@ -228,7 +232,7 @@
   }
 
   .score-header {
-    @apply mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200 bg-white/90 p-3 sm:flex-row sm:items-center;
+    @apply mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 sm:flex-row sm:items-center;
   }
 
   .score-totals {
@@ -236,7 +240,7 @@
   }
 
   .score-totals span {
-    @apply rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-xs font-black text-emerald-800;
+    @apply rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-xs font-extrabold text-emerald-800;
   }
 
   .timer-grid {
@@ -244,11 +248,11 @@
   }
 
   .timer-card {
-    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 sm:grid-cols-[1fr_auto_104px] sm:items-center;
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5 sm:grid-cols-[1fr_auto_104px] sm:items-center;
   }
 
   .timer-card p {
-    @apply mb-1 text-xs font-black uppercase text-slate-500;
+    @apply mb-1 text-xs font-extrabold uppercase text-stone-500;
   }
 
   .timer-card strong {
@@ -260,7 +264,7 @@
   }
 
   .progress-card {
-    @apply rounded-lg border border-stone-200 bg-white p-3;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
   }
 
   .progress-meta {
@@ -268,11 +272,11 @@
   }
 
   .progress-meta span {
-    @apply text-xs font-black uppercase text-slate-500;
+    @apply text-xs font-extrabold uppercase text-stone-500;
   }
 
   .progress-meta strong {
-    @apply text-sm font-black text-slate-950;
+    @apply text-sm font-extrabold text-slate-950;
   }
 
   .progress-meta.compact {
@@ -309,7 +313,7 @@
   .icon-button,
   .clear-tag,
   .tag-option {
-    @apply inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100;
+    @apply inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100;
   }
 
   .primary-button {
@@ -337,24 +341,23 @@
   }
 
   .victim-card {
-    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 transition hover:border-emerald-200 hover:bg-emerald-50/30 md:grid-cols-[168px_minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[190px_minmax(0,1fr)_minmax(0,1fr)];
-    box-shadow: inset 3px 0 0 rgba(22, 163, 74, 0.5);
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 md:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[180px_minmax(0,1fr)_minmax(0,1fr)];
   }
 
   .victim-key {
-    @apply grid content-start gap-1.5 rounded-md border border-emerald-100 bg-emerald-50/40 p-2;
+    @apply grid content-start gap-1.5 border-b border-stone-100 pb-2 md:border-b-0 md:border-r md:pb-0 md:pr-2;
   }
 
   .victim-key > strong {
-    @apply inline-flex h-8 w-12 items-center justify-center rounded-md bg-white text-base font-black text-emerald-800 ring-1 ring-emerald-100;
+    @apply inline-flex h-9 w-14 items-center justify-center rounded-md bg-emerald-700 text-lg font-extrabold text-white shadow-sm;
   }
 
   .victim-key div {
-    @apply grid gap-1;
+    @apply flex flex-wrap gap-1.5;
   }
 
   .victim-key span {
-    @apply text-[0.72rem] font-bold leading-relaxed text-stone-600;
+    @apply inline-flex flex-wrap items-center gap-1 text-[0.7rem] font-extrabold leading-relaxed text-stone-600;
   }
 
   .victim-key small {
@@ -362,11 +365,15 @@
   }
 
   .tag-chip {
-    @apply ml-1 inline-flex rounded-full px-1.5 py-0.5 text-[0.62rem] font-black leading-none;
+    @apply inline-flex rounded-full px-2 py-1 text-[0.62rem] font-black leading-none shadow-sm;
   }
 
   .answer-block {
-    @apply grid content-start gap-1.5 rounded-md border border-stone-100 bg-white p-2;
+    @apply grid content-start gap-2 border-b border-stone-100 pb-2 md:border-b-0 md:border-r md:pb-0 md:pr-2;
+  }
+
+  .answer-block:last-child {
+    @apply border-b-0 pb-0 md:border-r-0 md:pr-0;
   }
 
   .answer-heading {
@@ -374,7 +381,7 @@
   }
 
   .answer-heading span {
-    @apply text-xs font-black text-stone-500;
+    @apply text-xs font-extrabold text-stone-500;
   }
 
   .answer-heading strong {
@@ -390,39 +397,79 @@
   }
 
   .tag-options {
-    @apply grid grid-cols-4 gap-1.5;
+    @apply grid grid-cols-2 gap-1.5;
   }
 
   .tag-option {
-    @apply min-h-8 border-stone-200 bg-white px-1.5 py-1 text-xs text-slate-700 hover:bg-stone-50;
+    @apply min-h-9 justify-start border px-2 py-1.5 text-xs shadow-sm;
+  }
+
+  .tag-option::before {
+    @apply h-2.5 w-2.5 shrink-0 rounded-full bg-current;
+    content: "";
   }
 
   .tag-option.selected {
-    @apply border shadow-sm ring-1 ring-offset-0;
+    @apply ring-2 ring-offset-1;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+      0 8px 18px rgba(15, 23, 42, 0.14);
   }
 
   .clear-tag {
-    @apply col-span-4 min-h-8 border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100;
+    @apply col-span-2 min-h-8 border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100;
   }
 
-  .tag-green {
-    @apply border-emerald-200 bg-emerald-50 text-emerald-800 ring-emerald-100;
+  .tag-chip.tag-green {
+    @apply bg-emerald-600 text-white;
   }
 
-  .tag-yellow {
-    @apply border-amber-200 bg-amber-50 text-amber-800 ring-amber-100;
+  .tag-chip.tag-yellow {
+    @apply bg-yellow-300 text-yellow-950;
   }
 
-  .tag-red {
-    @apply border-red-200 bg-red-50 text-red-800 ring-red-100;
+  .tag-chip.tag-red {
+    @apply bg-red-600 text-white;
   }
 
-  .tag-black {
-    @apply border-stone-300 bg-stone-100 text-slate-950 ring-stone-200;
+  .tag-chip.tag-black {
+    @apply bg-slate-950 text-white;
+  }
+
+  .tag-option.tag-green {
+    @apply border-emerald-400 bg-emerald-100 text-emerald-950 ring-emerald-200 hover:bg-emerald-200;
+  }
+
+  .tag-option.tag-yellow {
+    @apply border-yellow-400 bg-yellow-200 text-yellow-950 ring-yellow-300 hover:bg-yellow-300;
+  }
+
+  .tag-option.tag-red {
+    @apply border-red-400 bg-red-100 text-red-950 ring-red-200 hover:bg-red-200;
+  }
+
+  .tag-option.tag-black {
+    @apply border-slate-600 bg-slate-200 text-slate-950 ring-slate-300 hover:bg-slate-300;
+  }
+
+  .tag-option.selected.tag-green {
+    @apply border-emerald-700 bg-emerald-700 text-white ring-emerald-300;
+  }
+
+  .tag-option.selected.tag-yellow {
+    @apply border-yellow-500 bg-yellow-400 text-yellow-950 ring-yellow-300;
+  }
+
+  .tag-option.selected.tag-red {
+    @apply border-red-700 bg-red-700 text-white ring-red-300;
+  }
+
+  .tag-option.selected.tag-black {
+    @apply border-slate-950 bg-slate-950 text-white ring-slate-300;
   }
 
   .action-bar {
-    @apply sticky bottom-0 z-30 mt-3 flex-wrap gap-2 rounded-lg border border-emerald-100 bg-white/92 p-2 shadow-lg shadow-emerald-900/5 backdrop-blur;
+    @apply sticky bottom-0 z-30 mt-3 flex-wrap gap-2 rounded-lg border border-emerald-100 bg-white/95 p-2 shadow-lg shadow-emerald-900/5 backdrop-blur;
   }
 
   .action-bar span,
@@ -460,7 +507,7 @@
   }
 
   .metric-grid article {
-    @apply rounded-lg border border-stone-200 bg-white p-3;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
   }
 
   .metric-grid span {
@@ -468,7 +515,7 @@
   }
 
   .metric-grid strong {
-    @apply text-2xl font-black text-emerald-950;
+    @apply text-2xl font-extrabold text-emerald-950;
   }
 
   .analytics-grid {
@@ -477,7 +524,7 @@
 
   .chart-card,
   .sessions-table {
-    @apply rounded-lg border border-stone-200 bg-white p-3;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
   }
 
   .bar-row {

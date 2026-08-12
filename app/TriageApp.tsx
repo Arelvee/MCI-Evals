@@ -372,7 +372,7 @@ function buildCsv(sessions: EvaluationSession[]) {
       "evaluation_date",
       "evaluator",
       "team",
-      "member",
+      "member_full_name",
       "method",
       "correct",
       "total",
@@ -913,7 +913,7 @@ export function TriageApp() {
             <div className="member-panel-header">
               <div className="section-title">
                 <Users size={20} aria-hidden="true" />
-                <h2>Group Members</h2>
+                <h2>Member Full Names</h2>
               </div>
               <button className="ghost-button add-member-button" type="button" onClick={addMember}>
                 <Plus size={18} aria-hidden="true" />
@@ -924,7 +924,7 @@ export function TriageApp() {
               {session.members.map((member, index) => (
                 <div className="member-field" key={member.id}>
                   <label>
-                    {`Member ${index + 1}`}
+                    {`Member ${index + 1} Full Name`}
                     <input
                       value={member.name}
                       onFocus={() => setActiveMemberIndex(index)}
@@ -934,7 +934,7 @@ export function TriageApp() {
                           name: event.target.value,
                         }))
                       }
-                      placeholder="Surname"
+                      placeholder="Full name"
                     />
                   </label>
                   {index >= 6 ? (
@@ -967,8 +967,9 @@ export function TriageApp() {
                     type="button"
                     onClick={() => setActiveMemberIndex(index)}
                   >
-                    <strong>{member.name || `Member ${index + 1}`}</strong>
-                    <span>
+                    <span className="member-index">{`Member ${index + 1}`}</span>
+                    <strong>{member.name || "Full name not set"}</strong>
+                    <span className="member-score-line">
                       {methodScores
                         .map(({ method, score }) => `${method} ${score.correct}/${score.total}`)
                         .join(" - ")}
@@ -1108,13 +1109,12 @@ export function TriageApp() {
                             {TAGS.map((tag) => (
                               <button
                                 key={tag}
-                                className={
-                                  selected === tag
-                                    ? `tag-option selected ${tagClass(tag)}`
-                                    : "tag-option"
-                                }
+                                className={`tag-option ${tagClass(tag)}${
+                                  selected === tag ? " selected" : ""
+                                }`}
                                 type="button"
                                 aria-pressed={selected === tag}
+                                aria-label={`${method} ${victim.id} ${TAG_LABELS[tag]}`}
                                 onClick={() => setAnswer(activeMember.id, method, victim.id, tag)}
                               >
                                 {TAG_LABELS[tag]}
