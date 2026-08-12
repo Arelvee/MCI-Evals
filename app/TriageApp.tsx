@@ -1003,82 +1003,78 @@ export function TriageApp() {
             <div className="member-panel-header">
               <div className="section-title">
                 <Users size={20} aria-hidden="true" />
-                <h2>Member Full Names</h2>
+                <h2>Members</h2>
               </div>
               <button className="ghost-button add-member-button" type="button" onClick={addMember}>
                 <Plus size={18} aria-hidden="true" />
                 Add Member
               </button>
             </div>
-            <div className="member-name-grid">
-              {session.members.map((member, index) => (
-                <div className="member-field" key={member.id}>
-                  <label>
-                    {`Member ${index + 1} Full Name`}
-                    <input
-                      value={member.name}
-                      onFocus={() => setActiveMemberIndex(index)}
-                      onChange={(event) =>
-                        updateMember(member.id, (current) => ({
-                          ...current,
-                          name: event.target.value,
-                        }))
-                      }
-                      placeholder="Full name"
-                    />
-                  </label>
-                  {index >= 6 ? (
-                    <button
-                      className="icon-button danger-icon member-remove"
-                      type="button"
-                      title={`Remove Member ${index + 1}`}
-                      aria-label={`Remove Member ${index + 1}`}
-                      onClick={() => removeMember(member.id, index)}
-                    >
-                      <Trash2 size={17} aria-hidden="true" />
-                    </button>
-                  ) : null}
-                </div>
-              ))}
+            <div className="member-picker-grid" aria-label="Select member">
+              {session.members.map((member, index) => {
+                const scoreTotal = dayConfig.methods.reduce(
+                  (total, method) => total + scoreMember(member, dayConfig, method, now).correct,
+                  0,
+                );
+                return (
+                  <button
+                    key={member.id}
+                    className={`member-chip${index === activeMemberIndex ? " active" : ""}`}
+                    type="button"
+                    aria-pressed={index === activeMemberIndex}
+                    onClick={() => setActiveMemberIndex(index)}
+                  >
+                    <span>{`Member ${index + 1}`}</span>
+                    <strong>{scoreTotal} pts</strong>
+                    <small>{member.name ? "Name saved" : "No name"}</small>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="active-member-card">
+              <div className="active-member-label">
+                <span>Active Member</span>
+                <strong>{`Member ${activeMemberIndex + 1}`}</strong>
+              </div>
+              <label>
+                Full Name
+                <input
+                  value={activeMember.name}
+                  onChange={(event) =>
+                    updateMember(activeMember.id, (current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Type full name"
+                />
+              </label>
+              {activeMemberIndex >= 6 ? (
+                <button
+                  className="icon-button danger-icon member-remove"
+                  type="button"
+                  title={`Remove Member ${activeMemberIndex + 1}`}
+                  aria-label={`Remove Member ${activeMemberIndex + 1}`}
+                  onClick={() => removeMember(activeMember.id, activeMemberIndex)}
+                >
+                  <Trash2 size={17} aria-hidden="true" />
+                </button>
+              ) : null}
             </div>
           </section>
 
           <section className="workbench">
-            <aside className="member-rail" aria-label="Select member">
-              {session.members.map((member, index) => {
-                const methodScores = dayConfig.methods.map((method) => ({
-                  method,
-                  score: scoreMember(member, dayConfig, method, now),
-                }));
-                return (
-                  <button
-                    key={member.id}
-                    className={index === activeMemberIndex ? "active" : ""}
-                    type="button"
-                    onClick={() => setActiveMemberIndex(index)}
-                  >
-                    <span className="member-index">{`Member ${index + 1}`}</span>
-                    <strong>{member.name || "Full name not set"}</strong>
-                    <span className="member-score-line">
-                      {methodScores
-                        .map(({ method, score }) => `${method} ${score.correct}/${score.total}`)
-                        .join(" - ")}
-                    </span>
-                  </button>
-                );
-              })}
-            </aside>
-
             <section className="score-sheet" aria-label={`${dayConfig.label} score sheet`}>
               <div className="score-header">
                 <div>
                   <p className="eyebrow">Scoring</p>
                   <h2>{activeMember.name || `Member ${activeMemberIndex + 1}`}</h2>
+                  <p className="score-rule">1 point each correct triage tag</p>
                 </div>
                 <div className="score-totals">
                   {dayConfig.methods.map((method) => (
                     <span key={method}>
-                      {method}: {activeStats[method].correct}/{activeStats[method].total}
+                      {method}: {activeStats[method].correct} pts / {activeStats[method].total}
                     </span>
                   ))}
                 </div>
@@ -1150,7 +1146,7 @@ export function TriageApp() {
                       </div>
                       <div className="progress-meta compact">
                         <span>
-                          {score.correct}/{score.total} correct
+                          {score.correct}/{score.total} pts
                         </span>
                         <span>{score.timeSeconds}s</span>
                       </div>

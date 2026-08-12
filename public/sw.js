@@ -1,4 +1,4 @@
-const CACHE_NAME = "mci-triage-pwa-v2";
+const CACHE_NAME = "mci-triage-pwa-v3";
 const FALLBACK_ASSETS = ["/", "/manifest.webmanifest", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
