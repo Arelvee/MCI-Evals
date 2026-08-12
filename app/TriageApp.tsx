@@ -833,6 +833,30 @@ export function TriageApp() {
                 })}
               </div>
 
+              <div className="progress-strip" aria-label="Active member progress">
+                {METHODS.map((method) => {
+                  const score = activeStats[method];
+                  const attemptedPercent = Math.round((score.attempted / score.total) * 100);
+                  return (
+                    <article className="progress-card" key={method}>
+                      <div className="progress-meta">
+                        <span>{method}</span>
+                        <strong>{attemptedPercent}% complete</strong>
+                      </div>
+                      <div className="progress-track" aria-hidden="true">
+                        <i style={{ width: `${attemptedPercent}%` }} />
+                      </div>
+                      <div className="progress-meta compact">
+                        <span>
+                          {score.correct}/{score.total} correct
+                        </span>
+                        <span>{score.timeSeconds}s</span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
               <div className="victim-list">
                 {DAY_ONE_VICTIMS.map((victim) => (
                   <article className="victim-card" key={victim.id}>
