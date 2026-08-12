@@ -55,6 +55,8 @@ test("ships Day 1 and Day 2 scoring with PWA assets", async () => {
   assert.match(app, /SORT/);
   assert.match(app, /Add Member/);
   assert.match(app, /removeMember/);
+  assert.match(app, /Please install this app/);
+  assert.match(app, /Install App/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
   assert.match(layout, /manifest: "\/manifest.webmanifest"/);

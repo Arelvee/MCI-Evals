@@ -448,6 +448,14 @@ function tagClass(tag: Answer) {
   return tag ? `tag-${tag.toLowerCase()}` : "";
 }
 
+function appIsStandalone() {
+  const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    navigatorWithStandalone.standalone === true
+  );
+}
+
 export function TriageApp() {
   const [hydrated, setHydrated] = useState(false);
   const [session, setSession] = useState<EvaluationSession | null>(null);
@@ -463,6 +471,8 @@ export function TriageApp() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
+  const [installBannerOpen, setInstallBannerOpen] = useState(true);
+  const [standalone, setStandalone] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -499,10 +509,30 @@ export function TriageApp() {
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
+      setInstallBannerOpen(true);
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+  }, []);
+
+  useEffect(() => {
+    const displayMode = window.matchMedia("(display-mode: standalone)");
+    const updateStandalone = () => setStandalone(appIsStandalone());
+    const onAppInstalled = () => {
+      setStandalone(true);
+      setInstallPrompt(null);
+      setInstallBannerOpen(false);
+    };
+
+    updateStandalone();
+    displayMode.addEventListener("change", updateStandalone);
+    window.addEventListener("appinstalled", onAppInstalled);
+
+    return () => {
+      displayMode.removeEventListener("change", updateStandalone);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
   }, []);
 
   useEffect(() => {
@@ -800,8 +830,15 @@ export function TriageApp() {
     }
 
     await installPrompt.prompt();
-    await installPrompt.userChoice;
+    const choice = await installPrompt.userChoice;
     setInstallPrompt(null);
+    if (choice.outcome === "accepted") {
+      setInstallBannerOpen(false);
+      setStatus("App installation started.");
+      return;
+    }
+
+    setStatus("Install prompt dismissed. You can still install from the browser menu.");
   }
 
   if (!hydrated || !session || !activeMember || !activeStats) {
@@ -832,6 +869,38 @@ export function TriageApp() {
           </button>
         ) : null}
       </header>
+
+      {installBannerOpen && !standalone ? (
+        <section className="install-banner" aria-live="polite">
+          <div>
+            <p className="eyebrow">Installable PWA</p>
+            <h2>Please install this app</h2>
+            <p>
+              Add MCI Triage Evaluation to your device for faster access and offline
+              score-sheet use.
+            </p>
+          </div>
+          <div className="install-actions">
+            {installPrompt ? (
+              <button className="primary-button" type="button" onClick={installApp}>
+                <Download size={18} aria-hidden="true" />
+                Install App
+              </button>
+            ) : (
+              <span className="install-tip">
+                iPhone/iPad: tap Share, then Add to Home Screen.
+              </span>
+            )}
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => setInstallBannerOpen(false)}
+            >
+              Later
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="day-switcher" aria-label="Training day">
         {DAYS.map((day) => (

@@ -125,6 +125,26 @@
     @apply mb-2 grid gap-2 sm:grid-cols-3;
   }
 
+  .install-banner {
+    @apply mb-3 flex flex-col justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 shadow-sm shadow-emerald-950/5 sm:flex-row sm:items-center;
+  }
+
+  .install-banner h2 {
+    @apply text-emerald-950;
+  }
+
+  .install-banner p:last-child {
+    @apply mb-0 text-sm font-semibold leading-relaxed text-emerald-800;
+  }
+
+  .install-actions {
+    @apply flex flex-wrap items-center gap-2 sm:justify-end;
+  }
+
+  .install-tip {
+    @apply rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-extrabold text-emerald-800;
+  }
+
   .day-pill {
     @apply flex min-h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none;
   }
@@ -571,6 +591,7 @@
   }
 
   .timer-actions,
+  .install-actions,
   .admin-actions {
     @apply w-full;
   }
