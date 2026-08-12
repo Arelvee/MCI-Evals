@@ -16,6 +16,8 @@ import {
   Trash2,
   Upload,
   Users,
+  Wifi,
+  WifiOff,
   X,
 } from "lucide-react";
 import {
@@ -492,6 +494,8 @@ export function TriageApp() {
   );
   const [installBannerOpen, setInstallBannerOpen] = useState(true);
   const [standalone, setStandalone] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [offlineReady, setOfflineReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -551,6 +555,43 @@ export function TriageApp() {
     return () => {
       displayMode.removeEventListener("change", updateStandalone);
       window.removeEventListener("appinstalled", onAppInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateOnlineState = () => setOnline(navigator.onLine);
+
+    updateOnlineState();
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    let cancelled = false;
+    const markReady = () => {
+      if (!cancelled) {
+        setOfflineReady(true);
+      }
+    };
+
+    navigator.serviceWorker.ready.then(markReady).catch(() => undefined);
+    if (navigator.serviceWorker.controller) {
+      markReady();
+    }
+    navigator.serviceWorker.addEventListener("controllerchange", markReady);
+
+    return () => {
+      cancelled = true;
+      navigator.serviceWorker.removeEventListener("controllerchange", markReady);
     };
   }, []);
 
@@ -880,12 +921,22 @@ export function TriageApp() {
             <h1>MCI Triage Evaluation</h1>
           </div>
         </div>
-        {installPrompt ? (
-          <button className="ghost-button" type="button" onClick={installApp}>
-            <Download size={18} aria-hidden="true" />
-            Install
-          </button>
-        ) : null}
+        <div className="topbar-actions">
+          <span className={online ? "connection-pill online" : "connection-pill offline"}>
+            {online ? (
+              <Wifi size={16} aria-hidden="true" />
+            ) : (
+              <WifiOff size={16} aria-hidden="true" />
+            )}
+            {online ? (offlineReady ? "Offline ready" : "Online") : "Offline mode"}
+          </span>
+          {installPrompt ? (
+            <button className="ghost-button" type="button" onClick={installApp}>
+              <Download size={18} aria-hidden="true" />
+              Install
+            </button>
+          ) : null}
+        </div>
       </header>
 
       {installBannerOpen && !standalone ? (
