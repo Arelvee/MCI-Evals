@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f7fb;
-  --foreground: #172033;
-  --brand: #123047;
-  --brand-2: #1d4ed8;
-  --success: #177245;
+  --background: #f7faf6;
+  --foreground: #102018;
+  --brand: #11683e;
+  --brand-2: #15803d;
+  --success: #147a45;
   --warning: #9a6400;
   --danger: #b42318;
-  --ink: #111827;
+  --ink: #102018;
 }
 
 @theme inline {
@@ -28,10 +28,10 @@
   }
 
   body {
-    @apply m-0 bg-slate-100 text-slate-900 antialiased;
+    @apply m-0 bg-stone-50 text-slate-900 antialiased;
     background:
-      linear-gradient(135deg, rgba(18, 48, 71, 0.09), transparent 32%),
-      linear-gradient(315deg, rgba(23, 114, 69, 0.08), transparent 38%),
+      linear-gradient(135deg, rgba(22, 101, 52, 0.08), transparent 34%),
+      linear-gradient(315deg, rgba(132, 204, 22, 0.06), transparent 38%),
       var(--background);
     font-family: Arial, Helvetica, sans-serif;
   }
@@ -50,11 +50,11 @@
   }
 
   input {
-    @apply min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100;
+    @apply min-h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-slate-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
   }
 
   label {
-    @apply grid gap-2 text-[0.72rem] font-black uppercase tracking-normal text-slate-500;
+    @apply grid gap-1.5 text-[0.7rem] font-black uppercase tracking-normal text-stone-500;
   }
 
   h1,
@@ -65,11 +65,11 @@
   }
 
   h1 {
-    @apply mb-0 text-2xl font-black leading-tight text-white sm:text-3xl;
+    @apply mb-0 text-xl font-black leading-tight text-white sm:text-2xl;
   }
 
   h2 {
-    @apply mb-0 text-xl font-black tracking-normal text-slate-950;
+    @apply mb-0 text-lg font-black tracking-normal text-slate-950;
   }
 
   h3 {
@@ -92,7 +92,7 @@
 
 @layer components {
   .app-shell {
-    @apply mx-auto min-h-screen w-full max-w-[1400px] px-3 py-4 sm:px-5 lg:px-6;
+    @apply mx-auto min-h-screen w-full max-w-[1360px] px-3 py-3 sm:px-5 lg:px-6;
   }
 
   .loading-shell {
@@ -100,11 +100,11 @@
   }
 
   .topbar {
-    @apply mb-4 flex items-center justify-between gap-4 rounded-lg bg-slate-950 p-4 shadow-2xl shadow-slate-300/70 sm:p-5;
+    @apply mb-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-700/20 bg-emerald-800 p-3 shadow-sm sm:p-4;
     background:
-      linear-gradient(135deg, rgba(29, 78, 216, 0.42), transparent 36%),
-      linear-gradient(315deg, rgba(23, 114, 69, 0.36), transparent 34%),
-      #111827;
+      linear-gradient(135deg, rgba(34, 197, 94, 0.26), transparent 38%),
+      linear-gradient(315deg, rgba(20, 83, 45, 0.34), transparent 36%),
+      #11683e;
   }
 
   .brand-lockup {
@@ -112,7 +112,7 @@
   }
 
   .brand-mark {
-    @apply grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-white text-xl font-black text-slate-950 shadow-lg;
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white text-lg font-black text-emerald-800 shadow-sm;
   }
 
   .eyebrow {
@@ -120,15 +120,15 @@
   }
 
   .topbar .eyebrow {
-    @apply text-blue-100;
+    @apply text-emerald-50;
   }
 
   .day-switcher {
-    @apply mb-3 grid gap-2 sm:grid-cols-3;
+    @apply mb-2 grid gap-2 sm:grid-cols-3;
   }
 
   .day-pill {
-    @apply flex min-h-14 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none;
+    @apply flex min-h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400;
   }
 
   .day-pill span {
@@ -140,31 +140,31 @@
   }
 
   .day-pill.active {
-    @apply border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200;
+    @apply border-emerald-700 bg-emerald-700 text-white shadow-sm;
   }
 
   .day-pill.active small {
-    @apply text-blue-100;
+    @apply text-emerald-100;
   }
 
   .view-switcher {
-    @apply sticky top-2 z-20 mb-4 grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-white/85 p-1 shadow-sm backdrop-blur;
+    @apply sticky top-2 z-20 mb-3 grid grid-cols-2 gap-1 rounded-md border border-stone-200 bg-white/90 p-1 backdrop-blur;
   }
 
   .view-switcher button {
-    @apply flex min-h-11 items-center justify-center gap-2 rounded-lg border border-transparent px-3 py-2 font-black text-slate-500 transition hover:bg-slate-100;
+    @apply flex min-h-9 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-black text-stone-500 transition hover:bg-stone-100;
   }
 
   .view-switcher button.active {
-    @apply bg-slate-950 text-white shadow-md;
+    @apply bg-emerald-700 text-white shadow-sm;
   }
 
   .identity-grid {
-    @apply mb-3 grid gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:grid-cols-3 sm:p-4;
+    @apply mb-3 grid gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 sm:grid-cols-3;
   }
 
   .member-panel {
-    @apply mb-4 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4;
+    @apply mb-3 rounded-lg border border-stone-200 bg-white/90 p-3;
   }
 
   .member-panel-header {
@@ -172,7 +172,7 @@
   }
 
   .section-title {
-    @apply mb-3 flex items-center gap-2 text-slate-700;
+    @apply mb-2 flex items-center gap-2 text-emerald-800;
   }
 
   .member-panel-header .section-title {
@@ -180,11 +180,11 @@
   }
 
   .member-name-grid {
-    @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-6;
+    @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6;
   }
 
   .member-field {
-    @apply grid grid-cols-[1fr_auto] items-end gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-2;
+    @apply grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-stone-100 bg-stone-50/60 p-2;
   }
 
   .member-field label {
@@ -200,7 +200,7 @@
   }
 
   .workbench {
-    @apply grid items-start gap-4 lg:grid-cols-[250px_minmax(0,1fr)];
+    @apply grid items-start gap-3 lg:grid-cols-[220px_minmax(0,1fr)];
   }
 
   .member-rail {
@@ -208,11 +208,11 @@
   }
 
   .member-rail button {
-    @apply grid min-h-[76px] min-w-[220px] gap-1 rounded-lg border border-slate-200 bg-white p-3 text-left text-slate-900 shadow-sm transition hover:border-blue-300 hover:shadow-md lg:min-w-0;
+    @apply grid min-h-[62px] min-w-[190px] gap-1 rounded-md border border-stone-200 bg-white p-2.5 text-left text-slate-900 transition hover:border-emerald-300 hover:bg-emerald-50 lg:min-w-0;
   }
 
   .member-rail button.active {
-    @apply border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-100;
+    @apply border-emerald-600 bg-emerald-50 ring-1 ring-emerald-100;
   }
 
   .member-rail strong {
@@ -228,7 +228,7 @@
   }
 
   .score-header {
-    @apply mb-3 flex flex-col justify-between gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:flex-row sm:items-center sm:p-4;
+    @apply mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200 bg-white/90 p-3 sm:flex-row sm:items-center;
   }
 
   .score-totals {
@@ -236,15 +236,15 @@
   }
 
   .score-totals span {
-    @apply rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-black text-blue-800;
+    @apply rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-xs font-black text-emerald-800;
   }
 
   .timer-grid {
-    @apply mb-4 grid gap-3 xl:grid-cols-2;
+    @apply mb-3 grid gap-2 xl:grid-cols-2;
   }
 
   .timer-card {
-    @apply grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-[1fr_auto_120px] sm:items-center sm:p-4;
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 sm:grid-cols-[1fr_auto_104px] sm:items-center;
   }
 
   .timer-card p {
@@ -252,15 +252,15 @@
   }
 
   .timer-card strong {
-    @apply font-mono text-3xl font-black text-slate-950;
+    @apply font-mono text-2xl font-black text-emerald-950;
   }
 
   .progress-strip {
-    @apply mb-4 grid gap-3 lg:grid-cols-2;
+    @apply mb-3 grid gap-2 lg:grid-cols-2;
   }
 
   .progress-card {
-    @apply rounded-lg border border-slate-200 bg-white p-3 shadow-sm;
+    @apply rounded-lg border border-stone-200 bg-white p-3;
   }
 
   .progress-meta {
@@ -288,7 +288,7 @@
   }
 
   .progress-track i {
-    @apply block h-full rounded-full bg-blue-600;
+    @apply block h-full rounded-full bg-emerald-600;
   }
 
   .timer-actions,
@@ -309,23 +309,23 @@
   .icon-button,
   .clear-tag,
   .tag-option {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 font-black transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100;
+    @apply inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100;
   }
 
   .primary-button {
-    @apply border-slate-950 bg-slate-950 text-white shadow-md hover:bg-slate-800;
+    @apply border-emerald-700 bg-emerald-700 text-white shadow-sm hover:bg-emerald-800;
   }
 
   .danger-button {
-    @apply border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700;
+    @apply border-red-600 bg-red-600 text-white shadow-sm hover:bg-red-700;
   }
 
   .ghost-button {
-    @apply border-slate-200 bg-white text-slate-800 shadow-sm hover:border-blue-300 hover:bg-blue-50;
+    @apply border-stone-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50;
   }
 
   .icon-button {
-    @apply aspect-square w-11 border-slate-200 bg-white p-0 text-slate-700 shadow-sm hover:bg-slate-100;
+    @apply aspect-square w-9 border-stone-200 bg-white p-0 text-slate-700 hover:bg-stone-100;
   }
 
   .danger-icon {
@@ -333,19 +333,20 @@
   }
 
   .victim-list {
-    @apply grid gap-3;
+    @apply grid gap-2;
   }
 
   .victim-card {
-    @apply grid gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md md:grid-cols-[170px_1fr_1fr] xl:grid-cols-[220px_1fr_1fr];
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 transition hover:border-emerald-200 hover:bg-emerald-50/30 md:grid-cols-[168px_minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[190px_minmax(0,1fr)_minmax(0,1fr)];
+    box-shadow: inset 3px 0 0 rgba(22, 163, 74, 0.5);
   }
 
   .victim-key {
-    @apply grid gap-2 rounded-lg bg-slate-50 p-3;
+    @apply grid content-start gap-1.5 rounded-md border border-emerald-100 bg-emerald-50/40 p-2;
   }
 
   .victim-key > strong {
-    @apply text-xl font-black text-slate-950;
+    @apply inline-flex h-8 w-12 items-center justify-center rounded-md bg-white text-base font-black text-emerald-800 ring-1 ring-emerald-100;
   }
 
   .victim-key div {
@@ -353,19 +354,19 @@
   }
 
   .victim-key span {
-    @apply text-xs font-bold text-slate-500;
+    @apply text-[0.72rem] font-bold leading-relaxed text-stone-600;
   }
 
   .victim-key small {
-    @apply text-xs font-semibold leading-relaxed text-slate-500;
+    @apply text-[0.7rem] font-semibold leading-snug text-stone-500;
   }
 
   .tag-chip {
-    @apply ml-1 inline-flex rounded-full px-2 py-1 text-[0.68rem] font-black leading-none;
+    @apply ml-1 inline-flex rounded-full px-1.5 py-0.5 text-[0.62rem] font-black leading-none;
   }
 
   .answer-block {
-    @apply grid gap-2;
+    @apply grid content-start gap-1.5 rounded-md border border-stone-100 bg-white p-2;
   }
 
   .answer-heading {
@@ -373,11 +374,11 @@
   }
 
   .answer-heading span {
-    @apply text-sm font-black text-slate-500;
+    @apply text-xs font-black text-stone-500;
   }
 
   .answer-heading strong {
-    @apply rounded-full bg-slate-100 px-2 py-1 text-[0.68rem] font-black uppercase text-slate-500;
+    @apply rounded-full bg-stone-100 px-1.5 py-0.5 text-[0.62rem] font-black uppercase text-stone-500;
   }
 
   .answer-heading .correct {
@@ -389,39 +390,39 @@
   }
 
   .tag-options {
-    @apply grid grid-cols-2 gap-2;
+    @apply grid grid-cols-4 gap-1.5;
   }
 
   .tag-option {
-    @apply border-slate-200 bg-white text-sm text-slate-700 shadow-sm hover:bg-slate-50;
+    @apply min-h-8 border-stone-200 bg-white px-1.5 py-1 text-xs text-slate-700 hover:bg-stone-50;
   }
 
   .tag-option.selected {
-    @apply border-2 shadow-md ring-2 ring-offset-1;
+    @apply border shadow-sm ring-1 ring-offset-0;
   }
 
   .clear-tag {
-    @apply col-span-2 border-slate-200 bg-slate-50 text-sm text-slate-500 hover:bg-slate-100;
+    @apply col-span-4 min-h-8 border-stone-200 bg-stone-50 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100;
   }
 
   .tag-green {
-    @apply border-emerald-300 bg-emerald-50 text-emerald-800 ring-emerald-100;
+    @apply border-emerald-200 bg-emerald-50 text-emerald-800 ring-emerald-100;
   }
 
   .tag-yellow {
-    @apply border-amber-300 bg-amber-50 text-amber-800 ring-amber-100;
+    @apply border-amber-200 bg-amber-50 text-amber-800 ring-amber-100;
   }
 
   .tag-red {
-    @apply border-red-300 bg-red-50 text-red-800 ring-red-100;
+    @apply border-red-200 bg-red-50 text-red-800 ring-red-100;
   }
 
   .tag-black {
-    @apply border-slate-400 bg-slate-100 text-slate-950 ring-slate-200;
+    @apply border-stone-300 bg-stone-100 text-slate-950 ring-stone-200;
   }
 
   .action-bar {
-    @apply sticky bottom-0 z-30 mt-4 flex-wrap gap-2 rounded-lg border border-slate-200 bg-white/90 p-2 shadow-2xl shadow-slate-300/60 backdrop-blur;
+    @apply sticky bottom-0 z-30 mt-3 flex-wrap gap-2 rounded-lg border border-emerald-100 bg-white/92 p-2 shadow-lg shadow-emerald-900/5 backdrop-blur;
   }
 
   .action-bar span,
@@ -435,7 +436,7 @@
   }
 
   .admin-lock {
-    @apply mx-auto mt-8 grid max-w-[460px] justify-items-center gap-3 rounded-lg border border-slate-200 bg-white p-6 text-center shadow-lg;
+    @apply mx-auto mt-8 grid max-w-[460px] justify-items-center gap-3 rounded-lg border border-stone-200 bg-white p-5 text-center shadow-sm;
   }
 
   .admin-lock label {
@@ -443,11 +444,11 @@
   }
 
   .lock-icon {
-    @apply grid h-14 w-14 place-items-center rounded-lg bg-blue-50 text-blue-700;
+    @apply grid h-12 w-12 place-items-center rounded-md bg-emerald-50 text-emerald-700;
   }
 
   .admin-header {
-    @apply flex-col justify-between gap-3 rounded-lg border border-slate-200 bg-white/90 p-4 shadow-sm sm:flex-row;
+    @apply flex-col justify-between gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 sm:flex-row;
   }
 
   .admin-actions {
@@ -459,7 +460,7 @@
   }
 
   .metric-grid article {
-    @apply rounded-lg border border-slate-200 bg-white p-4 shadow-sm;
+    @apply rounded-lg border border-stone-200 bg-white p-3;
   }
 
   .metric-grid span {
@@ -467,7 +468,7 @@
   }
 
   .metric-grid strong {
-    @apply text-3xl font-black text-slate-950;
+    @apply text-2xl font-black text-emerald-950;
   }
 
   .analytics-grid {
@@ -476,7 +477,7 @@
 
   .chart-card,
   .sessions-table {
-    @apply rounded-lg border border-slate-200 bg-white p-4 shadow-sm;
+    @apply rounded-lg border border-stone-200 bg-white p-3;
   }
 
   .bar-row {
@@ -492,15 +493,15 @@
   }
 
   .bar-row i {
-    @apply block h-full rounded-full bg-emerald-500;
+    @apply block h-full rounded-full bg-emerald-600;
   }
 
   .bar-row.speed i {
-    @apply bg-blue-500;
+    @apply bg-lime-500;
   }
 
   .table-scroll {
-    @apply overflow-x-auto rounded-lg border border-slate-200;
+    @apply overflow-x-auto rounded-lg border border-stone-200;
   }
 
   .sr-only {
