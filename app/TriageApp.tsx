@@ -184,6 +184,177 @@ const DAY_TWO_VICTIMS: VictimRecord[] = [
   },
 ];
 
+const DAY_THREE_VICTIMS: VictimRecord[] = [
+  {
+    id: "T1",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["GREEN"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T2",
+    correct: {
+      START: { tags: ["YELLOW"] },
+      SAVE: {
+        tags: ["YELLOW", "RED"],
+        note: "YELLOW at 10 min arrival (120/min PR); RED at 5 mins of arrival (90/60)",
+      },
+      SIEVE: { tags: ["YELLOW"] },
+      SORT: {
+        tags: ["GREEN", "RED"],
+        note: "GREEN at 10 min arrival (120/min PR); RED at 5 mins of arrival (90/60)",
+      },
+    },
+  },
+  {
+    id: "T3",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["GREEN"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T4",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["GREEN"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T5",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T6",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T7",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["YELLOW"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T8",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["YELLOW"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T9",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["BLACK"] },
+      SIEVE: { tags: ["RED"] },
+      SORT: { tags: ["RED"] },
+    },
+  },
+  {
+    id: "T10",
+    correct: {
+      START: { tags: ["BLACK"] },
+      SAVE: { tags: ["BLACK"] },
+      SIEVE: { tags: ["BLACK"] },
+      SORT: { tags: ["BLACK"] },
+    },
+  },
+  {
+    id: "T11",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["YELLOW"] },
+    },
+  },
+  {
+    id: "T12",
+    correct: {
+      START: { tags: ["YELLOW"] },
+      SAVE: { tags: ["GREEN"] },
+      SIEVE: { tags: ["YELLOW"] },
+      SORT: { tags: ["GREEN"] },
+    },
+  },
+  {
+    id: "T13",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["RED"] },
+      SORT: { tags: ["YELLOW"] },
+    },
+  },
+  {
+    id: "T14",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["YELLOW"] },
+    },
+  },
+  {
+    id: "T15",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["RED"] },
+      SORT: { tags: ["RED"] },
+    },
+  },
+  {
+    id: "T16",
+    correct: {
+      START: { tags: ["GREEN"] },
+      SAVE: { tags: ["RED"] },
+      SIEVE: { tags: ["GREEN"] },
+      SORT: { tags: ["YELLOW"] },
+    },
+  },
+  {
+    id: "T17",
+    correct: {
+      START: { tags: ["RED"] },
+      SAVE: { tags: ["BLACK"] },
+      SIEVE: { tags: ["RED"] },
+      SORT: { tags: ["RED"] },
+    },
+  },
+  {
+    id: "T18",
+    correct: {
+      START: { tags: ["BLACK"] },
+      SAVE: { tags: ["BLACK"] },
+      SIEVE: { tags: ["BLACK"] },
+      SORT: { tags: ["BLACK"] },
+    },
+  },
+];
+
 const DAY_CONFIGS: Record<DayKey, DayConfig> = {
   day1: {
     key: "day1",
@@ -204,10 +375,10 @@ const DAY_CONFIGS: Record<DayKey, DayConfig> = {
   day3: {
     key: "day3",
     label: "Day 3",
-    ready: false,
-    setTitle: "Pending Triage-T Set",
-    methods: ["SAVE", "SORT"],
-    victims: DAY_TWO_VICTIMS,
+    ready: true,
+    setTitle: "Grand Simulation E-Set",
+    methods: ["START", "SAVE", "SIEVE", "SORT"],
+    victims: DAY_THREE_VICTIMS,
   },
 };
 
@@ -1246,7 +1417,10 @@ export function TriageApp() {
 
               <div className="victim-list">
                 {dayConfig.victims.map((victim) => (
-                  <article className="victim-card" key={victim.id}>
+                  <article
+                    className={`victim-card methods-${dayConfig.methods.length}`}
+                    key={victim.id}
+                  >
                     <div className="victim-key">
                       <strong>{victim.id}</strong>
                       <div>
@@ -1268,20 +1442,21 @@ export function TriageApp() {
                       )}
                     </div>
 
-                    {dayConfig.methods.map((method) => {
-                      const selected = activeMember[method].answers[victim.id];
-                      const isCorrect =
-                        selected && (victim.correct[method]?.tags ?? []).includes(selected);
-                      return (
-                        <div className="answer-block" key={method}>
-                          <div className="answer-heading">
-                            <span>{method}</span>
-                            <strong className={isCorrect ? "correct" : selected ? "wrong" : ""}>
-                              {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
-                            </strong>
-                          </div>
-                          <div className="tag-options">
-                            {TAGS.map((tag) => (
+                    <div className="answer-grid">
+                      {dayConfig.methods.map((method) => {
+                        const selected = activeMember[method].answers[victim.id];
+                        const isCorrect =
+                          selected && (victim.correct[method]?.tags ?? []).includes(selected);
+                        return (
+                          <div className="answer-block" key={method}>
+                            <div className="answer-heading">
+                              <span>{method}</span>
+                              <strong className={isCorrect ? "correct" : selected ? "wrong" : ""}>
+                                {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
+                              </strong>
+                            </div>
+                            <div className="tag-options">
+                              {TAGS.map((tag) => (
                               <button
                                 key={tag}
                                 className={`tag-option ${tagClass(tag)}${
@@ -1294,18 +1469,19 @@ export function TriageApp() {
                               >
                                 {TAG_LABELS[tag]}
                               </button>
-                            ))}
-                            <button
-                              className="clear-tag"
-                              type="button"
-                              onClick={() => setAnswer(activeMember.id, method, victim.id, "")}
-                            >
-                              Clear
-                            </button>
+                              ))}
+                              <button
+                                className="clear-tag"
+                                type="button"
+                                onClick={() => setAnswer(activeMember.id, method, victim.id, "")}
+                              >
+                                Clear
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </article>
                 ))}
               </div>

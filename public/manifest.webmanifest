@@ -1,7 +1,7 @@
 {
   "name": "MCI Triage Evaluation",
   "short_name": "MCI Triage",
-  "description": "Offline-ready MCI triage score sheet with timers, exports, and admin analytics.",
+  "description": "Offline-ready Day 1 to Day 3 MCI triage score sheets with timers, exports, and admin analytics.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

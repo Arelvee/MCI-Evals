@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "MCI Triage Evaluation",
-  description: "Installable evaluator and admin analytics for MCI triage training.",
+  description: "Installable Day 1 to Day 3 evaluator and admin analytics for MCI triage training.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
