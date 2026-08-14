@@ -719,6 +719,133 @@
     @apply text-2xl font-extrabold text-emerald-950;
   }
 
+  .scorebook-area {
+    @apply grid gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 shadow-sm shadow-slate-900/5;
+  }
+
+  .scorebook-head {
+    @apply flex flex-col justify-between gap-2 md:flex-row md:items-start;
+  }
+
+  .scorebook-head p {
+    @apply mb-0 max-w-2xl text-sm font-semibold leading-relaxed text-stone-600;
+  }
+
+  .scorebook-metrics {
+    @apply sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .scorebook-insights {
+    @apply grid gap-3 lg:grid-cols-2;
+  }
+
+  .scorebook-insights.three-up {
+    @apply lg:grid-cols-3;
+  }
+
+  .scorebook-insights article,
+  .scorebook-table {
+    @apply rounded-lg border border-stone-200 bg-stone-50/60 p-3;
+  }
+
+  .top-scorers {
+    @apply grid gap-2 pl-0;
+    counter-reset: scorer;
+  }
+
+  .top-scorers li {
+    @apply grid grid-cols-[1fr_auto] gap-x-3 rounded-md border border-stone-200 bg-white px-3 py-2;
+    counter-increment: scorer;
+  }
+
+  .top-scorers li::before {
+    @apply mr-2 inline-grid h-6 w-6 place-items-center rounded-full bg-emerald-700 text-xs font-black text-white;
+    content: counter(scorer);
+    grid-row: span 2;
+  }
+
+  .top-scorers span {
+    @apply min-w-0 truncate text-sm font-black text-slate-950;
+  }
+
+  .top-scorers strong {
+    @apply text-sm font-black text-emerald-800;
+  }
+
+  .top-scorers small {
+    @apply col-start-2 text-xs font-bold text-stone-500;
+  }
+
+  .grade-list {
+    @apply grid gap-2;
+  }
+
+  .grade-list div,
+  .mini-analytics-list div {
+    @apply rounded-md border border-stone-200 bg-white px-3 py-2;
+  }
+
+  .grade-list div {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .grade-list span,
+  .mini-analytics-list span {
+    @apply text-sm font-black text-slate-800;
+  }
+
+  .grade-list strong,
+  .mini-analytics-list strong {
+    @apply text-sm font-black text-emerald-800;
+  }
+
+  .mini-analytics-list {
+    @apply grid gap-2;
+  }
+
+  .mini-analytics-list div {
+    @apply grid gap-1;
+  }
+
+  .mini-analytics-list small,
+  .mini-analytics-list em {
+    @apply text-xs font-bold not-italic text-stone-500;
+  }
+
+  .scorebook-scroll table {
+    @apply min-w-[1680px];
+  }
+
+  .scorebook-table th {
+    @apply text-[0.66rem];
+  }
+
+  .scorebook-table td {
+    @apply min-w-24 px-2 py-2;
+  }
+
+  .scorebook-table td:first-child,
+  .scorebook-table td:nth-child(2),
+  .scorebook-table td:last-child {
+    @apply min-w-48;
+  }
+
+  .scorebook-table input {
+    @apply min-h-8 px-2 py-1 text-sm;
+  }
+
+  .scorebook-table small {
+    @apply mt-1 block text-[0.66rem] font-bold text-stone-400;
+  }
+
+  .grade-pill {
+    @apply inline-flex rounded-md border border-emerald-100 bg-emerald-50 px-2 py-1 text-xs font-black text-emerald-800;
+  }
+
+  .muted-cell {
+    @apply text-sm font-black text-stone-300;
+  }
+
   .analytics-grid {
     @apply grid gap-3 lg:grid-cols-2;
   }

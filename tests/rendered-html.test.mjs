@@ -56,6 +56,12 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /methods: \["START", "SAVE", "SIEVE", "SORT"\]/);
   assert.match(app, /YELLOW at 10 min arrival/);
   assert.match(app, /GREEN at 10 min arrival/);
+  assert.match(app, /SCOREBOOK_KEY/);
+  assert.match(app, /Quiz and Simulation Scorebook/);
+  assert.match(app, /Export Scorebook/);
+  assert.match(app, /Top 1-3 Scorers/);
+  assert.match(app, /Monthly Analytics/);
+  assert.match(app, /Mean Final Score/);
   assert.match(app, /SAVE/);
   assert.match(app, /SORT/);
   assert.match(app, /Add Member/);
@@ -75,7 +81,7 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v5"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v6"/);
   assert.match(serviceWorker, /APP_SHELL_ASSETS/);
   assert.match(serviceWorker, /navigationResponse/);
   assert.match(packageJson, /"lucide-react"/);

@@ -1,11 +1,14 @@
 "use client";
 
 import {
+  Award,
   BarChart3,
+  Calculator,
   CalendarDays,
   Download,
   FileDown,
   Lock,
+  Medal,
   Play,
   Plus,
   RotateCcw,
@@ -33,6 +36,8 @@ type Method = "START" | "SIEVE" | "SAVE" | "SORT";
 type Tag = "GREEN" | "YELLOW" | "RED" | "BLACK";
 type Answer = Tag | "";
 type DayKey = "day1" | "day2" | "day3";
+type QuizKey = "startQuiz" | "jumpstartQuiz" | "day2Quiz" | "day3Quiz" | "postTest";
+type ScoreValue = number | "";
 
 type TimerState = {
   elapsedMs: number;
@@ -60,6 +65,15 @@ type EvaluationSession = {
   updatedAt: string;
 };
 
+type ScorebookOverride = {
+  participantName?: string;
+  trainingName?: string;
+  trainingDate?: string;
+  quizScores?: Partial<Record<QuizKey, ScoreValue>>;
+  simulationScores?: Partial<Record<Method, ScoreValue>>;
+  comments?: string;
+};
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
@@ -85,6 +99,15 @@ const ALL_VICTIM_IDS = Array.from({ length: 20 }, (_, index) => `T${index + 1}`)
 const SESSION_KEY = "mci-triage-sessions-v1";
 const DRAFT_KEY = "mci-triage-current-draft-v1";
 const ADMIN_KEY = "mci-triage-admin-passcode-v1";
+const SCOREBOOK_KEY = "mci-triage-scorebook-v1";
+const QUIZ_CONFIGS: { key: QuizKey; label: string; max: number; weight: number }[] = [
+  { key: "startQuiz", label: "START Quiz", max: 10, weight: 0.05 },
+  { key: "jumpstartQuiz", label: "JumpSTART Quiz", max: 18, weight: 0.05 },
+  { key: "day2Quiz", label: "Day 2 Quiz", max: 30, weight: 0.15 },
+  { key: "day3Quiz", label: "Day 3 Quiz", max: 10, weight: 0.15 },
+  { key: "postTest", label: "Post Test", max: 15, weight: 0.6 },
+];
+const GRADE_LABELS = ["Excellent", "Very Good", "Passed", "Needs Review", "Remedial"];
 
 const TAG_LABELS: Record<Tag, string> = {
   GREEN: "Green",
@@ -618,6 +641,51 @@ function average(values: number[]) {
   return values.reduce((total, value) => total + value, 0) / values.length;
 }
 
+function scoreValue(value: ScoreValue | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function clampScore(value: string, max: number): ScoreValue {
+  if (value.trim() === "") {
+    return "";
+  }
+
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return "";
+  }
+
+  return Math.min(max, Math.max(0, numeric));
+}
+
+function percentLabel(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+function gradeFor(percent: number) {
+  if (percent >= 0.9) {
+    return "Excellent";
+  }
+  if (percent >= 0.8) {
+    return "Very Good";
+  }
+  if (percent >= 0.75) {
+    return "Passed";
+  }
+  if (percent >= 0.6) {
+    return "Needs Review";
+  }
+  return "Remedial";
+}
+
+function monthKey(date: string) {
+  return date ? date.slice(0, 7) : "No date";
+}
+
+function yearKey(date: string) {
+  return date ? date.slice(0, 4) : "No date";
+}
+
 function tagClass(tag: Answer) {
   return tag ? `tag-${tag.toLowerCase()}` : "";
 }
@@ -660,6 +728,9 @@ export function TriageApp() {
   const [adminPasscodeExists, setAdminPasscodeExists] = useState(false);
   const [adminPasscode, setAdminPasscode] = useState("");
   const [adminMessage, setAdminMessage] = useState("");
+  const [scorebookOverrides, setScorebookOverrides] = useState<
+    Record<string, ScorebookOverride>
+  >({});
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
@@ -679,12 +750,16 @@ export function TriageApp() {
 
       const savedSessions = localStorage.getItem(SESSION_KEY);
       const savedDraft = localStorage.getItem(DRAFT_KEY);
+      const savedScorebook = localStorage.getItem(SCOREBOOK_KEY);
       setSessions(
         savedSessions
           ? (JSON.parse(savedSessions) as EvaluationSession[]).map(ensureSessionShape)
           : [],
       );
       setSession(savedDraft ? ensureSessionShape(JSON.parse(savedDraft)) : createSession());
+      setScorebookOverrides(
+        savedScorebook ? (JSON.parse(savedScorebook) as Record<string, ScorebookOverride>) : {},
+      );
       setAdminPasscodeExists(Boolean(localStorage.getItem(ADMIN_KEY)));
       setHydrated(true);
     });
@@ -778,6 +853,12 @@ export function TriageApp() {
     }
   }, [hydrated, sessions]);
 
+  useEffect(() => {
+    if (hydrated) {
+      localStorage.setItem(SCOREBOOK_KEY, JSON.stringify(scorebookOverrides));
+    }
+  }, [hydrated, scorebookOverrides]);
+
   const dayConfig = getDayConfig(session?.day ?? "day1");
   const activeMember = session?.members[activeMemberIndex] ?? null;
   const activeStats = useMemo(() => {
@@ -834,6 +915,118 @@ export function TriageApp() {
       methods,
     };
   }, [sessions, now]);
+
+  const scorebookRows = useMemo(() => {
+    return sessions.map(ensureSessionShape).flatMap((savedSession) => {
+      const config = getDayConfig(savedSession.day);
+      return savedSession.members
+        .filter((member) => memberHasData(member, config.methods))
+        .map((member, memberIndex) => {
+          const rowId = `${savedSession.id}:${member.id}`;
+          const override = scorebookOverrides[rowId] ?? {};
+          const quizScores = Object.fromEntries(
+            QUIZ_CONFIGS.map((quiz) => [
+              quiz.key,
+              override.quizScores?.[quiz.key] ?? "",
+            ]),
+          ) as Record<QuizKey, ScoreValue>;
+          const simulationScores = Object.fromEntries(
+            config.methods.map((method) => {
+              const autoScore = scoreMember(member, config, method, now).correct;
+              return [
+                method,
+                override.simulationScores?.[method] ?? autoScore,
+              ];
+            }),
+          ) as Partial<Record<Method, ScoreValue>>;
+          const examPercent = QUIZ_CONFIGS.reduce((total, quiz) => {
+            return total + (scoreValue(quizScores[quiz.key]) / quiz.max) * quiz.weight;
+          }, 0);
+          const simulationPercents = config.methods.map(
+            (method) =>
+              scoreValue(simulationScores[method]) / config.victims.length,
+          );
+          const simulationPercent = average(simulationPercents);
+          const finalPercent = (examPercent + simulationPercent) / 2;
+
+          return {
+            rowId,
+            session: savedSession,
+            config,
+            member,
+            memberIndex,
+            participantName:
+              override.participantName || member.name || `Member ${memberIndex + 1}`,
+            trainingName: override.trainingName || savedSession.teamName || config.label,
+            trainingDate: override.trainingDate ?? savedSession.evaluationDate,
+            quizScores,
+            simulationScores,
+            examPercent,
+            simulationPercent,
+            finalPercent,
+            grade: gradeFor(finalPercent),
+            comments: override.comments ?? "",
+          };
+        });
+    });
+  }, [sessions, scorebookOverrides, now]);
+
+  const scorebookAnalytics = useMemo(() => {
+    const rows = scorebookRows;
+    const participantCount = rows.length;
+    const meanFinal = average(rows.map((row) => row.finalPercent));
+    const meanExam = average(rows.map((row) => row.examPercent));
+    const meanSimulation = average(rows.map((row) => row.simulationPercent));
+    const passRate = participantCount
+      ? rows.filter((row) => row.finalPercent >= 0.75).length / participantCount
+      : 0;
+    const topScorers = [...rows]
+      .sort((a, b) => b.finalPercent - a.finalPercent)
+      .slice(0, 3);
+    const gradeCounts = Object.fromEntries(
+      GRADE_LABELS.map((label) => [
+        label,
+        rows.filter((row) => row.grade === label).length,
+      ]),
+    ) as Record<string, number>;
+    const summarize = (keyer: (row: (typeof rows)[number]) => string) => {
+      return Object.values(
+        rows.reduce(
+          (groups, row) => {
+            const key = keyer(row);
+            groups[key] ??= { key, rows: [] as typeof rows };
+            groups[key].rows.push(row);
+            return groups;
+          },
+          {} as Record<string, { key: string; rows: typeof rows }>,
+        ),
+      )
+        .map((group) => ({
+          key: group.key,
+          participants: group.rows.length,
+          meanFinal: average(group.rows.map((row) => row.finalPercent)),
+          meanExam: average(group.rows.map((row) => row.examPercent)),
+          meanSimulation: average(group.rows.map((row) => row.simulationPercent)),
+          topName:
+            [...group.rows].sort((a, b) => b.finalPercent - a.finalPercent)[0]
+              ?.participantName ?? "None",
+        }))
+        .sort((a, b) => b.key.localeCompare(a.key));
+    };
+
+    return {
+      participantCount,
+      meanFinal,
+      meanExam,
+      meanSimulation,
+      passRate,
+      topScorers,
+      gradeCounts,
+      byMonth: summarize((row) => monthKey(row.trainingDate)),
+      byTraining: summarize((row) => row.trainingName || row.config.label),
+      byYear: summarize((row) => yearKey(row.trainingDate)),
+    };
+  }, [scorebookRows]);
 
   function updateSession(updater: (current: EvaluationSession) => EvaluationSession) {
     setSession((current) => {
@@ -997,6 +1190,93 @@ export function TriageApp() {
       JSON.stringify({ exportedAt: new Date().toISOString(), sessions: frozenSessions }, null, 2),
       "application/json",
     );
+  }
+
+  function updateScorebookOverride(
+    rowId: string,
+    updater: (current: ScorebookOverride) => ScorebookOverride,
+  ) {
+    setScorebookOverrides((current) => ({
+      ...current,
+      [rowId]: updater(current[rowId] ?? {}),
+    }));
+  }
+
+  function setScorebookText(
+    rowId: string,
+    key: "participantName" | "trainingName" | "trainingDate" | "comments",
+    value: string,
+  ) {
+    updateScorebookOverride(rowId, (current) => ({ ...current, [key]: value }));
+  }
+
+  function setQuizScore(rowId: string, quizKey: QuizKey, value: string) {
+    const quiz = QUIZ_CONFIGS.find((item) => item.key === quizKey);
+    updateScorebookOverride(rowId, (current) => ({
+      ...current,
+      quizScores: {
+        ...(current.quizScores ?? {}),
+        [quizKey]: clampScore(value, quiz?.max ?? 100),
+      },
+    }));
+  }
+
+  function setSimulationScore(rowId: string, method: Method, value: string, max: number) {
+    updateScorebookOverride(rowId, (current) => ({
+      ...current,
+      simulationScores: {
+        ...(current.simulationScores ?? {}),
+        [method]: clampScore(value, max),
+      },
+    }));
+  }
+
+  function exportScorebook() {
+    const rows: (string | number)[][] = [
+      [
+        "training_date",
+        "training",
+        "day",
+        "participant",
+        ...QUIZ_CONFIGS.flatMap((quiz) => [
+          `${quiz.key}_score`,
+          `${quiz.key}_percent`,
+        ]),
+        "exam_percent",
+        ...ALL_METHODS.flatMap((method) => [`${method}_score`, `${method}_percent`]),
+        "simulation_percent",
+        "final_percent",
+        "grade",
+        "comments",
+      ],
+    ];
+
+    scorebookRows.forEach((row) => {
+      rows.push([
+        row.trainingDate,
+        row.trainingName,
+        row.config.label,
+        row.participantName,
+        ...QUIZ_CONFIGS.flatMap((quiz) => {
+          const score = scoreValue(row.quizScores[quiz.key]);
+          return [score, Math.round((score / quiz.max) * 100)];
+        }),
+        Math.round(row.examPercent * 100),
+        ...ALL_METHODS.flatMap((method) => {
+          const score = scoreValue(row.simulationScores[method]);
+          const percent = row.config.methods.includes(method)
+            ? Math.round((score / row.config.victims.length) * 100)
+            : "";
+          return [row.config.methods.includes(method) ? score : "", percent];
+        }),
+        Math.round(row.simulationPercent * 100),
+        Math.round(row.finalPercent * 100),
+        row.grade,
+        row.comments,
+      ]);
+    });
+
+    downloadFile("mci-triage-scorebook-analytics.csv", rows.map((row) => row.map(csvCell).join(",")).join("\n"), "text/csv");
   }
 
   async function unlockAdmin(event: FormEvent<HTMLFormElement>) {
@@ -1549,8 +1829,262 @@ export function TriageApp() {
                     <Download size={18} aria-hidden="true" />
                     Export JSON
                   </button>
+                  <button className="ghost-button" type="button" onClick={exportScorebook}>
+                    <Calculator size={18} aria-hidden="true" />
+                    Export Scorebook
+                  </button>
                 </div>
               </div>
+
+              <section className="scorebook-area">
+                <div className="scorebook-head">
+                  <div className="section-title">
+                    <Calculator size={20} aria-hidden="true" />
+                    <h3>Quiz and Simulation Scorebook</h3>
+                  </div>
+                  <p>
+                    Quiz scores are manual inputs. Simulation scores are auto-filled from saved
+                    score sheets and can still be edited.
+                  </p>
+                </div>
+
+                <div className="metric-grid scorebook-metrics">
+                  <article>
+                    <span>Scorebook Participants</span>
+                    <strong>{scorebookAnalytics.participantCount}</strong>
+                  </article>
+                  <article>
+                    <span>Mean Final Score</span>
+                    <strong>{percentLabel(scorebookAnalytics.meanFinal)}</strong>
+                  </article>
+                  <article>
+                    <span>Mean Quiz Score</span>
+                    <strong>{percentLabel(scorebookAnalytics.meanExam)}</strong>
+                  </article>
+                  <article>
+                    <span>Passing Rate</span>
+                    <strong>{percentLabel(scorebookAnalytics.passRate)}</strong>
+                  </article>
+                </div>
+
+                <div className="scorebook-insights">
+                  <article>
+                    <div className="section-title">
+                      <Medal size={20} aria-hidden="true" />
+                      <h3>Top 1-3 Scorers</h3>
+                    </div>
+                    {scorebookAnalytics.topScorers.length ? (
+                      <ol className="top-scorers">
+                        {scorebookAnalytics.topScorers.map((row) => (
+                          <li key={row.rowId}>
+                            <span>{row.participantName || "Unnamed participant"}</span>
+                            <strong>{percentLabel(row.finalPercent)}</strong>
+                            <small>{row.trainingName}</small>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="empty-state">Save simulation sheets to rank participants.</p>
+                    )}
+                  </article>
+
+                  <article>
+                    <div className="section-title">
+                      <Award size={20} aria-hidden="true" />
+                      <h3>Grade Distribution</h3>
+                    </div>
+                    <div className="grade-list">
+                      {GRADE_LABELS.map((grade) => (
+                        <div key={grade}>
+                          <span>{grade}</span>
+                          <strong>{scorebookAnalytics.gradeCounts[grade] ?? 0}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                </div>
+
+                <div className="scorebook-insights three-up">
+                  {[
+                    { title: "Monthly Analytics", rows: scorebookAnalytics.byMonth },
+                    { title: "Per Training", rows: scorebookAnalytics.byTraining },
+                    { title: "Yearly Analytics", rows: scorebookAnalytics.byYear },
+                  ].map((group) => (
+                    <article key={group.title}>
+                      <div className="section-title">
+                        <BarChart3 size={20} aria-hidden="true" />
+                        <h3>{group.title}</h3>
+                      </div>
+                      {group.rows.length ? (
+                        <div className="mini-analytics-list">
+                          {group.rows.slice(0, 6).map((item) => (
+                            <div key={item.key}>
+                              <span>{item.key}</span>
+                              <strong>{percentLabel(item.meanFinal)}</strong>
+                              <small>
+                                {item.participants} pax | Quiz {percentLabel(item.meanExam)} |
+                                Sim {percentLabel(item.meanSimulation)}
+                              </small>
+                              <em>{item.topName}</em>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="empty-state">No scorebook data yet.</p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+
+                <div className="scorebook-table">
+                  <div className="section-title">
+                    <TimerReset size={20} aria-hidden="true" />
+                    <h3>Editable Score Inputs</h3>
+                  </div>
+                  {scorebookRows.length ? (
+                    <div className="table-scroll scorebook-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Participant</th>
+                            <th>Training</th>
+                            <th>Date</th>
+                            {QUIZ_CONFIGS.map((quiz) => (
+                              <th key={quiz.key}>{quiz.label}</th>
+                            ))}
+                            <th>Quiz %</th>
+                            {ALL_METHODS.map((method) => (
+                              <th key={method}>{method}</th>
+                            ))}
+                            <th>Simulation %</th>
+                            <th>Final %</th>
+                            <th>Grade</th>
+                            <th>Comments</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scorebookRows.map((row) => (
+                            <tr key={row.rowId}>
+                              <td>
+                                <input
+                                  value={row.participantName}
+                                  onChange={(event) =>
+                                    setScorebookText(
+                                      row.rowId,
+                                      "participantName",
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder="Full name"
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  value={row.trainingName}
+                                  onChange={(event) =>
+                                    setScorebookText(
+                                      row.rowId,
+                                      "trainingName",
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder="Training or batch"
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  value={row.trainingDate}
+                                  onChange={(event) =>
+                                    setScorebookText(
+                                      row.rowId,
+                                      "trainingDate",
+                                      event.target.value,
+                                    )
+                                  }
+                                />
+                              </td>
+                              {QUIZ_CONFIGS.map((quiz) => (
+                                <td key={quiz.key}>
+                                  <input
+                                    inputMode="decimal"
+                                    min="0"
+                                    max={quiz.max}
+                                    type="number"
+                                    value={row.quizScores[quiz.key]}
+                                    onChange={(event) =>
+                                      setQuizScore(row.rowId, quiz.key, event.target.value)
+                                    }
+                                    placeholder={`/${quiz.max}`}
+                                  />
+                                  <small>{`/${quiz.max}`}</small>
+                                </td>
+                              ))}
+                              <td>
+                                <strong>{percentLabel(row.examPercent)}</strong>
+                              </td>
+                              {ALL_METHODS.map((method) => (
+                                <td key={method}>
+                                  {row.config.methods.includes(method) ? (
+                                    <>
+                                      <input
+                                        inputMode="decimal"
+                                        min="0"
+                                        max={row.config.victims.length}
+                                        type="number"
+                                        value={row.simulationScores[method] ?? ""}
+                                        onChange={(event) =>
+                                          setSimulationScore(
+                                            row.rowId,
+                                            method,
+                                            event.target.value,
+                                            row.config.victims.length,
+                                          )
+                                        }
+                                        placeholder={`/${row.config.victims.length}`}
+                                      />
+                                      <small>{`/${row.config.victims.length}`}</small>
+                                    </>
+                                  ) : (
+                                    <span className="muted-cell">-</span>
+                                  )}
+                                </td>
+                              ))}
+                              <td>
+                                <strong>{percentLabel(row.simulationPercent)}</strong>
+                              </td>
+                              <td>
+                                <strong>{percentLabel(row.finalPercent)}</strong>
+                              </td>
+                              <td>
+                                <span className="grade-pill">{row.grade}</span>
+                              </td>
+                              <td>
+                                <input
+                                  value={row.comments}
+                                  onChange={(event) =>
+                                    setScorebookText(
+                                      row.rowId,
+                                      "comments",
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder="Optional"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="empty-state">
+                      Save or import simulation score sheets first. Participants will appear here
+                      automatically.
+                    </p>
+                  )}
+                </div>
+              </section>
 
               <div className="metric-grid">
                 <article>
