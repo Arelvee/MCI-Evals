@@ -396,6 +396,35 @@
     @apply mt-1 text-xs font-bold text-stone-500;
   }
 
+  .day-score-summary {
+    @apply mb-3 grid gap-2 sm:grid-cols-3;
+  }
+
+  .day-score-summary article {
+    @apply grid gap-1 rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
+  }
+
+  .day-score-summary article.active {
+    @apply border-emerald-300 bg-emerald-50/80;
+  }
+
+  .day-score-summary span,
+  .scoring-menu > div > span {
+    @apply text-xs font-black uppercase text-stone-500;
+  }
+
+  .day-score-summary strong {
+    @apply text-xl font-black text-slate-950;
+  }
+
+  .day-score-summary small {
+    @apply text-xs font-bold text-slate-600;
+  }
+
+  .day-score-summary em {
+    @apply text-[0.68rem] font-extrabold not-italic text-emerald-700;
+  }
+
   .timer-grid {
     @apply mb-3 grid gap-2 xl:grid-cols-2;
   }
@@ -491,8 +520,63 @@
     @apply text-red-600 hover:bg-red-50;
   }
 
-  .victim-list {
+  .danger-ghost {
+    @apply border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50;
+  }
+
+  .scoring-menu {
+    @apply sticky top-[76px] z-10 mb-3 grid gap-2 rounded-lg border border-stone-200 bg-white/95 p-2.5 shadow-sm shadow-slate-900/5 backdrop-blur;
+  }
+
+  .scoring-menu > div {
+    @apply grid gap-1.5;
+  }
+
+  .method-tabs,
+  .victim-range-menu {
+    @apply flex gap-1.5 overflow-x-auto pb-1;
+  }
+
+  .method-tabs button,
+  .victim-range-menu button {
+    @apply inline-flex min-h-8 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 px-3 text-xs font-black text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50;
+  }
+
+  .method-tabs button.active,
+  .victim-range-menu button.active {
+    @apply border-emerald-700 bg-emerald-700 text-white;
+  }
+
+  .victim-groups {
     @apply grid gap-2;
+  }
+
+  .victim-group {
+    @apply overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm shadow-slate-900/5;
+  }
+
+  .victim-group summary {
+    @apply flex cursor-pointer list-none items-center justify-between gap-3 bg-stone-50 px-3 py-2 text-sm font-black text-slate-800;
+  }
+
+  .victim-group summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .victim-group summary strong {
+    @apply rounded-full bg-white px-2 py-1 text-[0.68rem] font-black text-emerald-700;
+  }
+
+  .victim-list {
+    @apply grid gap-2 p-2;
+  }
+
+  .bottom-quick-actions {
+    @apply sticky bottom-2 z-20 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-emerald-100 bg-white/95 p-2.5 shadow-lg shadow-emerald-950/10 backdrop-blur sm:grid-cols-3;
+  }
+
+  .bottom-quick-actions .primary-button {
+    @apply col-span-2 sm:col-span-1;
   }
 
   .victim-card {

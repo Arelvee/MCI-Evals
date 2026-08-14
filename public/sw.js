@@ -1,4 +1,4 @@
-const CACHE_NAME = "mci-triage-pwa-v6";
+const CACHE_NAME = "mci-triage-pwa-v10";
 const APP_SHELL_ASSETS = [
   "/",
   "/manifest.webmanifest",

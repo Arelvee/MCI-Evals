@@ -93,18 +93,23 @@ type DayConfig = {
   victims: VictimRecord[];
 };
 
+type VictimGroup = {
+  key: string;
+  label: string;
+  victims: VictimRecord[];
+};
+
 const ALL_METHODS: Method[] = ["START", "SIEVE", "SAVE", "SORT"];
 const TAGS: Tag[] = ["GREEN", "YELLOW", "RED", "BLACK"];
-const ALL_VICTIM_IDS = Array.from({ length: 20 }, (_, index) => `T${index + 1}`);
 const SESSION_KEY = "mci-triage-sessions-v1";
-const DRAFT_KEY = "mci-triage-current-draft-v1";
+const DRAFT_KEY = "mci-triage-current-draft-v2";
 const ADMIN_KEY = "mci-triage-admin-passcode-v1";
 const SCOREBOOK_KEY = "mci-triage-scorebook-v1";
 const QUIZ_CONFIGS: { key: QuizKey; label: string; max: number; weight: number }[] = [
   { key: "startQuiz", label: "START Quiz", max: 10, weight: 0.05 },
   { key: "jumpstartQuiz", label: "JumpSTART Quiz", max: 18, weight: 0.05 },
   { key: "day2Quiz", label: "Day 2 Quiz", max: 30, weight: 0.15 },
-  { key: "day3Quiz", label: "Day 3 Quiz", max: 10, weight: 0.15 },
+  { key: "day3Quiz", label: "Day 3 E-Set Quiz", max: 10, weight: 0.15 },
   { key: "postTest", label: "Post Test", max: 15, weight: 0.6 },
 ];
 const GRADE_LABELS = ["Excellent", "Very Good", "Passed", "Needs Review", "Remedial"];
@@ -209,7 +214,7 @@ const DAY_TWO_VICTIMS: VictimRecord[] = [
 
 const DAY_THREE_VICTIMS: VictimRecord[] = [
   {
-    id: "T1",
+    id: "E1",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["GREEN"] },
@@ -218,7 +223,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T2",
+    id: "E2",
     correct: {
       START: { tags: ["YELLOW"] },
       SAVE: {
@@ -233,7 +238,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T3",
+    id: "E3",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["GREEN"] },
@@ -242,7 +247,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T4",
+    id: "E4",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["GREEN"] },
@@ -251,7 +256,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T5",
+    id: "E5",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["RED"] },
@@ -260,7 +265,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T6",
+    id: "E6",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["RED"] },
@@ -269,7 +274,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T7",
+    id: "E7",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["RED"] },
@@ -278,7 +283,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T8",
+    id: "E8",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["RED"] },
@@ -287,7 +292,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T9",
+    id: "E9",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["BLACK"] },
@@ -296,7 +301,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T10",
+    id: "E10",
     correct: {
       START: { tags: ["BLACK"] },
       SAVE: { tags: ["BLACK"] },
@@ -305,7 +310,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T11",
+    id: "E11",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["RED"] },
@@ -314,7 +319,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T12",
+    id: "E12",
     correct: {
       START: { tags: ["YELLOW"] },
       SAVE: { tags: ["GREEN"] },
@@ -323,7 +328,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T13",
+    id: "E13",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["RED"] },
@@ -332,7 +337,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T14",
+    id: "E14",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["RED"] },
@@ -341,7 +346,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T15",
+    id: "E15",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["RED"] },
@@ -350,7 +355,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T16",
+    id: "E16",
     correct: {
       START: { tags: ["GREEN"] },
       SAVE: { tags: ["RED"] },
@@ -359,7 +364,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T17",
+    id: "E17",
     correct: {
       START: { tags: ["RED"] },
       SAVE: { tags: ["BLACK"] },
@@ -368,7 +373,7 @@ const DAY_THREE_VICTIMS: VictimRecord[] = [
     },
   },
   {
-    id: "T18",
+    id: "E18",
     correct: {
       START: { tags: ["BLACK"] },
       SAVE: { tags: ["BLACK"] },
@@ -397,7 +402,7 @@ const DAY_CONFIGS: Record<DayKey, DayConfig> = {
   },
   day3: {
     key: "day3",
-    label: "Day 3",
+    label: "Day 3 E-Set",
     ready: true,
     setTitle: "Grand Simulation E-Set",
     methods: ["START", "SAVE", "SIEVE", "SORT"],
@@ -415,6 +420,16 @@ function getDayConfig(day: DayKey) {
   return DAY_CONFIGS[day] ?? DAY_CONFIGS.day1;
 }
 
+function allConfiguredVictimIds() {
+  return Array.from(
+    new Set(
+      Object.values(DAY_CONFIGS).flatMap((config) =>
+        config.victims.map((victim) => victim.id),
+      ),
+    ),
+  );
+}
+
 function newId() {
   return globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}`;
 }
@@ -424,7 +439,7 @@ function todayInputValue() {
 }
 
 function emptyAnswers() {
-  return Object.fromEntries(ALL_VICTIM_IDS.map((victimId) => [victimId, ""])) as Record<
+  return Object.fromEntries(allConfiguredVictimIds().map((victimId) => [victimId, ""])) as Record<
     string,
     Answer
   >;
@@ -472,10 +487,51 @@ function createSession(day: DayKey = "day1"): EvaluationSession {
 }
 
 function ensureSessionShape(session: EvaluationSession): EvaluationSession {
+  const day = DAY_CONFIGS[session.day] ? session.day : "day1";
+  const members = session.members.map(ensureMemberShape);
   return {
     ...session,
-    day: DAY_CONFIGS[session.day] ? session.day : "day1",
-    members: session.members.map(ensureMemberShape),
+    day,
+    members: day === "day3" ? members.map(migrateDayThreeLegacyAnswers) : members,
+  };
+}
+
+function migrateDayThreeLegacyAnswers(member: MemberRecord) {
+  const migrated = { ...member } as MemberRecord;
+  DAY_THREE_VICTIMS.forEach((victim, index) => {
+    const legacyId = `T${index + 1}`;
+    ALL_METHODS.forEach((method) => {
+      const legacyAnswer = migrated[method].answers[legacyId];
+      if (!migrated[method].answers[victim.id] && legacyAnswer) {
+        migrated[method] = {
+          ...migrated[method],
+          answers: { ...migrated[method].answers, [victim.id]: legacyAnswer },
+        };
+      }
+    });
+  });
+  return migrated;
+}
+
+function createCleanSessionForDay(
+  day: DayKey,
+  current?: EvaluationSession | null,
+): EvaluationSession {
+  const next = createSession(day);
+  if (!current) {
+    return next;
+  }
+
+  const shaped = ensureSessionShape(current);
+  return {
+    ...next,
+    evaluatorName: shaped.evaluatorName,
+    evaluationDate: shaped.evaluationDate || next.evaluationDate,
+    teamName: shaped.teamName,
+    members: shaped.members.map((member, index) => ({
+      ...createMember(index),
+      name: member.name,
+    })),
   };
 }
 
@@ -558,7 +614,17 @@ function csvCell(value: string | number) {
 }
 
 function buildCsv(sessions: EvaluationSession[]) {
-  const victimHeaders = ALL_VICTIM_IDS.flatMap((victimId) => [
+  const shapedSessions = sessions.map(ensureSessionShape);
+  const victimIds = Array.from(
+    new Set(
+      shapedSessions.length
+        ? shapedSessions.flatMap((session) =>
+            getDayConfig(session.day).victims.map((victim) => victim.id),
+          )
+        : allConfiguredVictimIds(),
+    ),
+  );
+  const victimHeaders = victimIds.flatMap((victimId) => [
     `${victimId}_answer`,
     `${victimId}_correct`,
   ]);
@@ -579,35 +645,35 @@ function buildCsv(sessions: EvaluationSession[]) {
     ],
   ];
 
-  sessions.map(ensureSessionShape).forEach((session) => {
+  shapedSessions.forEach((session) => {
     const config = getDayConfig(session.day);
     session.members
       .filter((member) => memberHasData(member, config.methods))
       .forEach((member, memberIndex) => {
-      config.methods.forEach((method) => {
-        const score = scoreMember(member, config, method);
-        rows.push([
-          session.id,
-          config.label,
-          session.evaluationDate,
-          session.evaluatorName,
-          session.teamName,
-          member.name || `Member ${memberIndex + 1}`,
-          method,
-          score.correct,
-          score.total,
-          Math.round(score.accuracy * 100),
-          score.timeSeconds,
-          ...ALL_VICTIM_IDS.flatMap((victimId) => {
-            const victim = config.victims.find((item) => item.id === victimId);
-            const answer = member[method].answers[victimId];
-            const isCorrect =
-              answer && (victim?.correct[method]?.tags ?? []).includes(answer);
-            return [answer || "", isCorrect ? "yes" : "no"];
-          }),
-        ]);
+        config.methods.forEach((method) => {
+          const score = scoreMember(member, config, method);
+          rows.push([
+            session.id,
+            config.label,
+            session.evaluationDate,
+            session.evaluatorName,
+            session.teamName,
+            member.name || `Member ${memberIndex + 1}`,
+            method,
+            score.correct,
+            score.total,
+            Math.round(score.accuracy * 100),
+            score.timeSeconds,
+            ...victimIds.flatMap((victimId) => {
+              const victim = config.victims.find((item) => item.id === victimId);
+              const answer = member[method].answers[victimId];
+              const isCorrect =
+                answer && (victim?.correct[method]?.tags ?? []).includes(answer);
+              return [answer || "", isCorrect ? "yes" : "no"];
+            }),
+          ]);
+        });
       });
-    });
   });
 
   return rows.map((row) => row.map(csvCell).join(",")).join("\n");
@@ -639,6 +705,21 @@ function average(values: number[]) {
   }
 
   return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+function chunkVictims(victims: VictimRecord[], size = 5): VictimGroup[] {
+  const groups: VictimGroup[] = [];
+  for (let index = 0; index < victims.length; index += size) {
+    const group = victims.slice(index, index + size);
+    const first = group[0]?.id ?? "";
+    const last = group[group.length - 1]?.id ?? "";
+    groups.push({
+      key: `${first}-${last}`,
+      label: first === last ? first : `${first}-${last}`,
+      victims: group,
+    });
+  }
+  return groups;
 }
 
 function scoreValue(value: ScoreValue | undefined) {
@@ -731,6 +812,9 @@ export function TriageApp() {
   const [scorebookOverrides, setScorebookOverrides] = useState<
     Record<string, ScorebookOverride>
   >({});
+  const [activeMethodFilter, setActiveMethodFilter] = useState<Method | "ALL">("ALL");
+  const [activeVictimGroup, setActiveVictimGroup] = useState<number | "ALL">("ALL");
+  const [openVictimGroups, setOpenVictimGroups] = useState<Record<string, boolean>>({});
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
@@ -859,20 +943,94 @@ export function TriageApp() {
     }
   }, [hydrated, scorebookOverrides]);
 
-  const dayConfig = getDayConfig(session?.day ?? "day1");
+  const dayKey = session?.day ?? "day1";
+  const dayConfig = getDayConfig(dayKey);
   const activeMember = session?.members[activeMemberIndex] ?? null;
+  const visibleMethods =
+    activeMethodFilter === "ALL" || !dayConfig.methods.includes(activeMethodFilter)
+      ? dayConfig.methods
+      : [activeMethodFilter];
+  const victimGroups = useMemo(() => chunkVictims(getDayConfig(dayKey).victims), [dayKey]);
+  const visibleVictimGroups =
+    activeVictimGroup === "ALL"
+      ? victimGroups
+      : victimGroups[activeVictimGroup]
+        ? [victimGroups[activeVictimGroup]]
+        : victimGroups;
   const activeStats = useMemo(() => {
     if (!activeMember) {
       return null;
     }
 
+    const config = getDayConfig(dayKey);
     return Object.fromEntries(
-      dayConfig.methods.map((method) => [
+      config.methods.map((method) => [
         method,
-        scoreMember(activeMember, dayConfig, method, now),
+        scoreMember(activeMember, config, method, now),
       ]),
     ) as Record<Method, ReturnType<typeof scoreMember>>;
-  }, [activeMember, dayConfig, now]);
+  }, [activeMember, dayKey, now]);
+
+  const dayScoreSummaries = useMemo(() => {
+    if (!session || !activeMember) {
+      return [];
+    }
+
+    const shapedSession = ensureSessionShape(session);
+    const shapedSavedSessions = sessions.map(ensureSessionShape);
+    const activeName = activeMember.name.trim().toLowerCase();
+
+    return DAYS.map((day) => {
+      const config = getDayConfig(day.key);
+      const sortedSavedSessions = shapedSavedSessions
+        .filter((savedSession) => savedSession.day === day.key)
+        .sort(
+          (left, right) =>
+            new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+        );
+      const sourceSession =
+        shapedSession.day === day.key ? shapedSession : sortedSavedSessions[0] ?? null;
+      const matchedMember =
+        sourceSession?.day === shapedSession.day
+          ? sourceSession.members[activeMemberIndex]
+          : sourceSession?.members.find(
+              (member) => activeName && member.name.trim().toLowerCase() === activeName,
+            ) ??
+            sourceSession?.members[activeMemberIndex] ??
+            null;
+      const methodScores = config.methods.map((method) =>
+        matchedMember
+          ? scoreMember(matchedMember, config, method, now)
+          : {
+              attempted: 0,
+              correct: 0,
+              total: config.victims.length,
+              accuracy: 0,
+              timeSeconds: 0,
+            },
+      );
+      const correct = methodScores.reduce((total, score) => total + score.correct, 0);
+      const total = config.victims.length * config.methods.length;
+      const sourceLabel =
+        sourceSession?.id === shapedSession.id
+          ? "Current sheet"
+          : sourceSession
+            ? "Latest saved sheet"
+            : "No saved sheet";
+
+      return {
+        dayKey: day.key,
+        label: day.label,
+        correct,
+        total,
+        percent: total ? correct / total : 0,
+        sourceLabel,
+        methodText: config.methods
+          .map((method, index) => `${method} ${methodScores[index].correct}`)
+          .join(" | "),
+      };
+    });
+  }, [activeMember, activeMemberIndex, now, session, sessions]);
 
   const analytics = useMemo(() => {
     const rows = sessions.map(ensureSessionShape).flatMap((savedSession) => {
@@ -927,7 +1085,7 @@ export function TriageApp() {
           const quizScores = Object.fromEntries(
             QUIZ_CONFIGS.map((quiz) => [
               quiz.key,
-              override.quizScores?.[quiz.key] ?? "",
+              override.quizScores?.[quiz.key] ?? 0,
             ]),
           ) as Record<QuizKey, ScoreValue>;
           const simulationScores = Object.fromEntries(
@@ -1085,6 +1243,36 @@ export function TriageApp() {
     }));
   }
 
+  function clearActiveMember() {
+    if (!activeMember) {
+      return;
+    }
+
+    const hasActiveScores = dayConfig.methods.some((method) => {
+      const record = activeMember[method];
+      return (
+        timerMs(record.timer) > 0 ||
+        dayConfig.victims.some((victim) => record.answers[victim.id])
+      );
+    });
+
+    if (
+      hasActiveScores &&
+      !window.confirm("Clear all selected tags and timers for this member?")
+    ) {
+      return;
+    }
+
+    updateMember(activeMember.id, (member) => {
+      const cleared = { ...member } as MemberRecord;
+      dayConfig.methods.forEach((method) => {
+        cleared[method] = createMethodRecord();
+      });
+      return cleared;
+    });
+    setStatus(`Cleared all scores for ${activeMember.name || `Member ${activeMemberIndex + 1}`}.`);
+  }
+
   function setManualSeconds(memberId: string, method: Method, value: string) {
     const seconds = Math.max(0, Number(value) || 0);
     updateMember(memberId, (member) => ({
@@ -1097,9 +1285,12 @@ export function TriageApp() {
   }
 
   function switchDay(day: DayKey) {
-    updateSession((current) => ({ ...current, day }));
+    setSession((current) => createCleanSessionForDay(day, current));
     setActiveMemberIndex(0);
-    setStatus(`${getDayConfig(day).label} score sheet ready.`);
+    setActiveMethodFilter("ALL");
+    setActiveVictimGroup("ALL");
+    setOpenVictimGroups({});
+    setStatus(`${getDayConfig(day).label} score sheet ready with 0 scores.`);
   }
 
   function addMember() {
@@ -1156,6 +1347,9 @@ export function TriageApp() {
 
     setSession(createSession(session?.day ?? "day1"));
     setActiveMemberIndex(0);
+    setActiveMethodFilter("ALL");
+    setActiveVictimGroup("ALL");
+    setOpenVictimGroups({});
     setStatus(`New ${dayConfig.label} sheet ready.`);
   }
 
@@ -1167,12 +1361,16 @@ export function TriageApp() {
     const frozen = normalizeTimers(session);
     const config = getDayConfig(frozen.day);
     if (format === "csv") {
-      downloadFile(`${config.label.toLowerCase().replace(" ", "-")}-triage-current.csv`, buildCsv([frozen]), "text/csv");
+      downloadFile(
+        `${config.label.toLowerCase().replaceAll(" ", "-")}-triage-current.csv`,
+        buildCsv([frozen]),
+        "text/csv",
+      );
       return;
     }
 
     downloadFile(
-      `${config.label.toLowerCase().replace(" ", "-")}-triage-current.json`,
+      `${config.label.toLowerCase().replaceAll(" ", "-")}-triage-current.json`,
       JSON.stringify({ exportedAt: new Date().toISOString(), sessions: [frozen] }, null, 2),
       "application/json",
     );
@@ -1574,11 +1772,15 @@ export function TriageApp() {
                 </button>
                 <button className="ghost-button" type="button" onClick={() => exportCurrent("csv")}>
                   <FileDown size={18} aria-hidden="true" />
-                  Export CSV
+                  Export Sheet
                 </button>
                 <button className="ghost-button" type="button" onClick={() => exportCurrent("json")}>
                   <Download size={18} aria-hidden="true" />
                   Export JSON
+                </button>
+                <button className="ghost-button" type="button" onClick={clearActiveMember}>
+                  <RotateCcw size={18} aria-hidden="true" />
+                  Clear All
                 </button>
                 <button className="ghost-button" type="button" onClick={createNewSheet}>
                   <Plus size={18} aria-hidden="true" />
@@ -1619,6 +1821,22 @@ export function TriageApp() {
                   ))}
                 </div>
               </div>
+
+              <section className="day-score-summary" aria-label="Day score summary">
+                {dayScoreSummaries.map((summary) => (
+                  <article
+                    className={summary.dayKey === session.day ? "active" : ""}
+                    key={summary.dayKey}
+                  >
+                    <span>{summary.label} Score</span>
+                    <strong>
+                      {summary.correct}/{summary.total} pts
+                    </strong>
+                    <small>{`${percentLabel(summary.percent)} | ${summary.methodText}`}</small>
+                    <em>{summary.sourceLabel}</em>
+                  </article>
+                ))}
+              </section>
 
               <div className="timer-grid">
                 {dayConfig.methods.map((method) => {
@@ -1695,75 +1913,185 @@ export function TriageApp() {
                 })}
               </div>
 
-              <div className="victim-list">
-                {dayConfig.victims.map((victim) => (
-                  <article
-                    className={`victim-card methods-${dayConfig.methods.length}`}
-                    key={victim.id}
-                  >
-                    <div className="victim-key">
-                      <strong>{victim.id}</strong>
-                      <div>
-                        {dayConfig.methods.map((method) => (
-                          <span key={method}>
-                            {method}{" "}
-                            {(victim.correct[method]?.tags ?? []).map((tag) => (
-                              <b className={`tag-chip ${tagClass(tag)}`} key={tag}>
-                                {TAG_LABELS[tag]}
-                              </b>
-                            ))}
-                          </span>
-                        ))}
-                      </div>
-                      {dayConfig.methods.map((method) =>
-                        victim.correct[method]?.note ? (
-                          <small key={method}>{`${method}: ${victim.correct[method]?.note}`}</small>
-                        ) : null,
-                      )}
-                    </div>
+              <section className="scoring-menu" aria-label="Scoring menu">
+                <div>
+                  <span>Method</span>
+                  <div className="method-tabs" role="tablist" aria-label="Filter scoring method">
+                    <button
+                      className={activeMethodFilter === "ALL" ? "active" : ""}
+                      type="button"
+                      onClick={() => setActiveMethodFilter("ALL")}
+                    >
+                      All
+                    </button>
+                    {dayConfig.methods.map((method) => (
+                      <button
+                        className={activeMethodFilter === method ? "active" : ""}
+                        key={method}
+                        type="button"
+                        onClick={() => setActiveMethodFilter(method)}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span>Victims</span>
+                  <div className="victim-range-menu" aria-label="Victim range menu">
+                    <button
+                      className={activeVictimGroup === "ALL" ? "active" : ""}
+                      type="button"
+                      onClick={() => setActiveVictimGroup("ALL")}
+                    >
+                      All
+                    </button>
+                    {victimGroups.map((group, index) => (
+                      <button
+                        className={activeVictimGroup === index ? "active" : ""}
+                        key={group.key}
+                        type="button"
+                        onClick={() => setActiveVictimGroup(index)}
+                      >
+                        {group.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
 
-                    <div className="answer-grid">
-                      {dayConfig.methods.map((method) => {
-                        const selected = activeMember[method].answers[victim.id];
-                        const isCorrect =
-                          selected && (victim.correct[method]?.tags ?? []).includes(selected);
-                        return (
-                          <div className="answer-block" key={method}>
-                            <div className="answer-heading">
-                              <span>{method}</span>
-                              <strong className={isCorrect ? "correct" : selected ? "wrong" : ""}>
-                                {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
-                              </strong>
-                            </div>
-                            <div className="tag-options">
-                              {TAGS.map((tag) => (
-                              <button
-                                key={tag}
-                                className={`tag-option ${tagClass(tag)}${
-                                  selected === tag ? " selected" : ""
-                                }`}
-                                type="button"
-                                aria-pressed={selected === tag}
-                                aria-label={`${method} ${victim.id} ${TAG_LABELS[tag]}`}
-                                onClick={() => setAnswer(activeMember.id, method, victim.id, tag)}
-                              >
-                                {TAG_LABELS[tag]}
-                              </button>
+              <div className="victim-groups">
+                {visibleVictimGroups.map((group, groupIndex) => {
+                  const groupStateKey = `${dayConfig.key}:${group.key}`;
+                  const groupOpen =
+                    openVictimGroups[groupStateKey] ??
+                    (activeVictimGroup !== "ALL" || groupIndex === 0);
+                  return (
+                    <details
+                      className="victim-group"
+                      key={`${dayConfig.key}-${activeVictimGroup}-${group.key}`}
+                      onToggle={(event) =>
+                        setOpenVictimGroups((current) => ({
+                          ...current,
+                          [groupStateKey]: event.currentTarget.open,
+                        }))
+                      }
+                      open={groupOpen}
+                    >
+                      <summary>
+                        <span>{group.label}</span>
+                        <strong>
+                          {group.victims.reduce(
+                            (total, victim) =>
+                              total +
+                              visibleMethods.filter(
+                                (method) => activeMember[method].answers[victim.id],
+                              ).length,
+                            0,
+                          )}
+                          /{group.victims.length * visibleMethods.length} tagged
+                        </strong>
+                      </summary>
+                      <div className="victim-list">
+                      {group.victims.map((victim) => (
+                        <article
+                          className={`victim-card methods-${visibleMethods.length}`}
+                          key={victim.id}
+                        >
+                          <div className="victim-key">
+                            <strong>{victim.id}</strong>
+                            <div>
+                              {visibleMethods.map((method) => (
+                                <span key={method}>
+                                  {method}{" "}
+                                  {(victim.correct[method]?.tags ?? []).map((tag) => (
+                                    <b className={`tag-chip ${tagClass(tag)}`} key={tag}>
+                                      {TAG_LABELS[tag]}
+                                    </b>
+                                  ))}
+                                </span>
                               ))}
-                              <button
-                                className="clear-tag"
-                                type="button"
-                                onClick={() => setAnswer(activeMember.id, method, victim.id, "")}
-                              >
-                                Clear
-                              </button>
                             </div>
+                            {visibleMethods.map((method) =>
+                              victim.correct[method]?.note ? (
+                                <small key={method}>
+                                  {`${method}: ${victim.correct[method]?.note}`}
+                                </small>
+                              ) : null,
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </article>
-                ))}
+
+                          <div className="answer-grid">
+                            {visibleMethods.map((method) => {
+                              const selected = activeMember[method].answers[victim.id];
+                              const isCorrect =
+                                selected &&
+                                (victim.correct[method]?.tags ?? []).includes(selected);
+                              return (
+                                <div className="answer-block" key={method}>
+                                  <div className="answer-heading">
+                                    <span>{method}</span>
+                                    <strong
+                                      className={isCorrect ? "correct" : selected ? "wrong" : ""}
+                                    >
+                                      {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
+                                    </strong>
+                                  </div>
+                                  <div className="tag-options">
+                                    {TAGS.map((tag) => (
+                                      <button
+                                        key={tag}
+                                        className={`tag-option ${tagClass(tag)}${
+                                          selected === tag ? " selected" : ""
+                                        }`}
+                                        type="button"
+                                        aria-pressed={selected === tag}
+                                        aria-label={`${method} ${victim.id} ${TAG_LABELS[tag]}`}
+                                        onClick={() =>
+                                          setAnswer(activeMember.id, method, victim.id, tag)
+                                        }
+                                      >
+                                        {TAG_LABELS[tag]}
+                                      </button>
+                                    ))}
+                                    <button
+                                      className="clear-tag"
+                                      type="button"
+                                      onClick={() =>
+                                        setAnswer(activeMember.id, method, victim.id, "")
+                                      }
+                                    >
+                                      Clear
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </article>
+                      ))}
+                      </div>
+                    </details>
+                  );
+                })}
+              </div>
+              <div className="bottom-quick-actions" aria-label="Bottom score sheet actions">
+                <button className="primary-button" type="button" onClick={saveCurrent}>
+                  <Save size={18} aria-hidden="true" />
+                  Save Sheet
+                </button>
+                <button className="ghost-button" type="button" onClick={() => exportCurrent("csv")}>
+                  <FileDown size={18} aria-hidden="true" />
+                  Export Sheet
+                </button>
+                <button
+                  className="ghost-button danger-ghost"
+                  type="button"
+                  onClick={clearActiveMember}
+                >
+                  <RotateCcw size={18} aria-hidden="true" />
+                  Clear All
+                </button>
               </div>
             </section>
             </section>
