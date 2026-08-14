@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f8f1;
-  --foreground: #122018;
-  --brand: #0f6b3e;
-  --brand-2: #138a4f;
+  --background: #f7faf8;
+  --foreground: #111827;
+  --brand: #0d7a4d;
+  --brand-2: #16a36b;
   --success: #0f7a45;
   --warning: #9a6400;
   --danger: #b42318;
-  --ink: #122018;
+  --ink: #111827;
   --font-manrope: "Manrope", "Segoe UI", Arial, Helvetica, sans-serif;
   --font-geist-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
 }
@@ -32,8 +32,8 @@
   body {
     @apply m-0 bg-stone-50 text-slate-900 antialiased;
     background:
-      linear-gradient(180deg, rgba(240, 253, 244, 0.92), rgba(245, 245, 244, 0.98) 46%),
-      linear-gradient(90deg, rgba(15, 107, 62, 0.05), transparent 34%),
+      linear-gradient(180deg, rgba(247, 250, 248, 0.98), rgba(245, 245, 244, 0.98) 44%),
+      linear-gradient(90deg, rgba(13, 122, 77, 0.05), transparent 38%),
       var(--background);
     font-family: var(--font-manrope), "Segoe UI", Arial, Helvetica, sans-serif;
   }
@@ -52,7 +52,7 @@
   }
 
   input {
-    @apply min-h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-[0.95rem] text-slate-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
+    @apply min-h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-[0.92rem] text-slate-950 outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
   }
 
   label {
@@ -94,7 +94,7 @@
 
 @layer components {
   .app-shell {
-    @apply mx-auto min-h-screen w-full max-w-[1440px] px-3 py-3 sm:px-5 lg:px-6;
+    @apply mx-auto min-h-screen w-full max-w-[1500px] px-2.5 py-2.5 sm:px-4 lg:px-5;
   }
 
   .loading-shell {
@@ -102,7 +102,7 @@
   }
 
   .topbar {
-    @apply mb-3 flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 backdrop-blur sm:p-4;
+    @apply mb-3 flex flex-col items-start justify-between gap-3 rounded-lg border border-stone-200/80 bg-white/90 p-3 shadow-sm shadow-slate-900/5 backdrop-blur sm:flex-row sm:items-center;
   }
 
   .brand-lockup {
@@ -118,7 +118,8 @@
   }
 
   .mci-logo-mark {
-    @apply relative grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-emerald-800 shadow-sm shadow-emerald-950/20;
+    @apply relative grid h-11 w-11 shrink-0 place-items-center rounded-lg shadow-sm shadow-emerald-950/20;
+    background: linear-gradient(135deg, #065f46, #16a36b);
   }
 
   .mci-logo.compact .mci-logo-mark {
@@ -173,7 +174,7 @@
   }
 
   .mci-logo-type strong {
-    @apply text-sm font-black tracking-[0.12em] text-emerald-950;
+    @apply text-sm font-black tracking-[0.12em] text-slate-950;
   }
 
   .mci-logo-type small {
@@ -216,8 +217,20 @@
     @apply border-amber-200 bg-amber-50 text-amber-800;
   }
 
+  .workspace-layout {
+    @apply grid gap-3 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)];
+  }
+
+  .control-panel {
+    @apply grid content-start gap-3 rounded-lg border border-stone-200/80 bg-white/80 p-2.5 shadow-sm shadow-slate-900/5 backdrop-blur lg:sticky lg:top-3;
+  }
+
+  .workspace-main {
+    @apply min-w-0;
+  }
+
   .day-switcher {
-    @apply mb-2 grid gap-2 sm:grid-cols-3;
+    @apply grid grid-cols-3 gap-1.5 lg:grid-cols-1;
   }
 
   .install-popout {
@@ -249,7 +262,7 @@
   }
 
   .day-pill {
-    @apply flex min-h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-slate-700 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none;
+    @apply flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-slate-700 shadow-sm shadow-slate-900/5 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none lg:justify-start lg:px-3;
   }
 
   .day-pill span {
@@ -257,7 +270,7 @@
   }
 
   .day-pill small {
-    @apply block w-full text-center text-[0.68rem] font-bold text-stone-500;
+    @apply hidden text-[0.68rem] font-bold text-stone-500 lg:ml-auto lg:block;
   }
 
   .day-pill.active {
@@ -269,23 +282,23 @@
   }
 
   .view-switcher {
-    @apply sticky top-2 z-20 mb-3 grid grid-cols-2 gap-1 rounded-md border border-stone-200 bg-white/90 p-1 backdrop-blur;
+    @apply grid grid-cols-2 gap-1 rounded-md border border-stone-200 bg-stone-100/80 p-1;
   }
 
   .view-switcher button {
-    @apply flex min-h-9 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-extrabold text-stone-500 transition hover:bg-stone-100;
+    @apply flex min-h-9 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm font-extrabold text-stone-500 transition hover:bg-white;
   }
 
   .view-switcher button.active {
-    @apply bg-emerald-700 text-white shadow-sm;
+    @apply bg-white text-emerald-800 shadow-sm;
   }
 
   .identity-grid {
-    @apply mb-3 grid gap-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 sm:grid-cols-3;
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
   }
 
   .member-panel {
-    @apply mb-3 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
   }
 
   .member-panel-header {
@@ -301,15 +314,16 @@
   }
 
   .member-picker-grid {
-    @apply mb-3 flex gap-2 overflow-x-auto pb-1;
+    @apply mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2;
   }
 
   .member-chip {
-    @apply grid min-h-16 min-w-[132px] content-center gap-0.5 rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-left shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 hover:bg-emerald-50;
+    @apply grid min-h-14 content-center gap-0.5 rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-left shadow-sm shadow-slate-900/5 transition hover:border-emerald-300 hover:bg-emerald-50;
   }
 
   .member-chip.active {
-    @apply border-emerald-700 bg-emerald-700 text-white ring-2 ring-emerald-100;
+    @apply border-emerald-700 text-white ring-2 ring-emerald-100;
+    background: linear-gradient(135deg, #047857, #16a36b);
   }
 
   .member-chip span {
@@ -317,7 +331,7 @@
   }
 
   .member-chip strong {
-    @apply text-lg font-black text-slate-950;
+    @apply text-base font-black text-slate-950;
   }
 
   .member-chip small {
@@ -331,11 +345,11 @@
   }
 
   .active-member-card {
-    @apply grid gap-3 rounded-md border border-emerald-100 bg-emerald-50/70 p-3 sm:grid-cols-[150px_minmax(0,1fr)_auto] sm:items-end;
+    @apply grid gap-2 rounded-md border border-emerald-100 bg-emerald-50/70 p-2.5;
   }
 
   .active-member-label {
-    @apply grid gap-0.5 rounded-md bg-white/80 px-3 py-2;
+    @apply flex items-center justify-between gap-2 rounded-md bg-white/80 px-3 py-2;
   }
 
   .active-member-label span {
@@ -344,6 +358,10 @@
 
   .active-member-label strong {
     @apply text-base font-black text-emerald-950;
+  }
+
+  .control-note {
+    @apply rounded-lg border border-stone-200 bg-white p-3 text-sm font-semibold leading-relaxed text-stone-600 shadow-sm shadow-slate-900/5;
   }
 
   .member-remove {
@@ -363,7 +381,7 @@
   }
 
   .score-header {
-    @apply mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200 bg-white/95 p-3 shadow-sm shadow-emerald-950/5 sm:flex-row sm:items-center;
+    @apply sticky top-2 z-10 mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200/90 bg-white/95 p-3 shadow-sm shadow-slate-900/5 backdrop-blur sm:flex-row sm:items-center;
   }
 
   .score-totals {
@@ -383,7 +401,7 @@
   }
 
   .timer-card {
-    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5 sm:grid-cols-[1fr_auto_104px] sm:items-center;
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5 sm:grid-cols-[1fr_auto_96px] sm:items-center;
   }
 
   .timer-card p {
@@ -391,7 +409,7 @@
   }
 
   .timer-card strong {
-    @apply font-mono text-2xl font-black text-emerald-950;
+    @apply font-mono text-[1.6rem] font-black leading-none text-slate-950;
   }
 
   .progress-strip {
@@ -399,7 +417,7 @@
   }
 
   .progress-card {
-    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
   }
 
   .progress-meta {
@@ -427,7 +445,8 @@
   }
 
   .progress-track i {
-    @apply block h-full rounded-full bg-emerald-600;
+    @apply block h-full rounded-full;
+    background: linear-gradient(90deg, #0d7a4d, #22c55e);
   }
 
   .timer-actions,
@@ -452,7 +471,8 @@
   }
 
   .primary-button {
-    @apply border-emerald-700 bg-emerald-700 text-white shadow-sm hover:bg-emerald-800;
+    @apply border-emerald-700 text-white shadow-sm hover:border-emerald-800;
+    background: linear-gradient(135deg, #047857, #16a36b);
   }
 
   .danger-button {
@@ -476,7 +496,7 @@
   }
 
   .victim-card {
-    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-300 md:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[180px_minmax(0,1fr)_minmax(0,1fr)];
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-slate-900/5 transition hover:border-emerald-300 md:grid-cols-[132px_minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[150px_minmax(0,1fr)_minmax(0,1fr)];
   }
 
   .victim-key {
@@ -484,7 +504,8 @@
   }
 
   .victim-key > strong {
-    @apply inline-flex h-9 w-14 items-center justify-center rounded-md bg-emerald-700 text-lg font-extrabold text-white shadow-sm;
+    @apply inline-flex h-10 w-full items-center justify-center rounded-md text-lg font-black text-white shadow-sm;
+    background: linear-gradient(135deg, #111827, #0d7a4d);
   }
 
   .victim-key div {
@@ -492,7 +513,7 @@
   }
 
   .victim-key span {
-    @apply inline-flex flex-wrap items-center gap-1 text-[0.7rem] font-extrabold leading-relaxed text-stone-600;
+    @apply inline-flex flex-wrap items-center gap-1 text-[0.68rem] font-extrabold leading-relaxed text-stone-600;
   }
 
   .victim-key small {
@@ -504,11 +525,11 @@
   }
 
   .answer-block {
-    @apply grid content-start gap-2 border-b border-stone-100 pb-2 md:border-b-0 md:border-r md:pb-0 md:pr-2;
+    @apply grid content-start gap-2 rounded-md border border-stone-100 bg-stone-50/50 p-2 md:border-stone-100;
   }
 
   .answer-block:last-child {
-    @apply border-b-0 pb-0 md:border-r-0 md:pr-0;
+    @apply border-stone-100;
   }
 
   .answer-heading {
@@ -520,7 +541,7 @@
   }
 
   .answer-heading strong {
-    @apply rounded-full bg-stone-100 px-1.5 py-0.5 text-[0.62rem] font-black uppercase text-stone-500;
+    @apply rounded-full bg-white px-1.5 py-0.5 text-[0.62rem] font-black uppercase text-stone-500;
   }
 
   .answer-heading .correct {
@@ -637,7 +658,7 @@
   }
 
   .action-bar {
-    @apply sticky bottom-0 z-30 mt-3 flex-wrap gap-2 rounded-lg border border-emerald-100 bg-white/95 p-2 shadow-lg shadow-emerald-900/5 backdrop-blur;
+    @apply grid grid-cols-2 gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-slate-900/5;
   }
 
   .action-bar span,
@@ -646,12 +667,16 @@
     @apply text-sm font-bold text-slate-500;
   }
 
+  .action-bar span {
+    @apply col-span-2 rounded-md bg-stone-50 px-2.5 py-2 text-xs leading-relaxed;
+  }
+
   .admin-area {
     @apply grid gap-4;
   }
 
   .admin-lock {
-    @apply mx-auto mt-8 grid max-w-[460px] justify-items-center gap-3 rounded-lg border border-stone-200 bg-white p-5 text-center shadow-sm;
+    @apply mx-auto mt-4 grid max-w-[460px] justify-items-center gap-3 rounded-lg border border-stone-200 bg-white p-5 text-center shadow-sm shadow-slate-900/5;
   }
 
   .admin-lock label {
@@ -663,7 +688,7 @@
   }
 
   .admin-header {
-    @apply flex-col justify-between gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 sm:flex-row;
+    @apply flex-col justify-between gap-3 rounded-lg border border-stone-200 bg-white/90 p-3 shadow-sm shadow-slate-900/5 sm:flex-row;
   }
 
   .admin-actions {
@@ -675,7 +700,7 @@
   }
 
   .metric-grid article {
-    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
   }
 
   .metric-grid span {
@@ -692,7 +717,7 @@
 
   .chart-card,
   .sessions-table {
-    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-emerald-950/5;
+    @apply rounded-lg border border-stone-200 bg-white p-3 shadow-sm shadow-slate-900/5;
   }
 
   .bar-row {
@@ -729,11 +754,23 @@
     @apply items-start;
   }
 
+  .topbar-actions {
+    @apply w-full justify-between;
+  }
+
+  .connection-pill {
+    @apply flex-1;
+  }
+
   .action-bar button,
   .timer-actions .primary-button,
   .timer-actions .danger-button,
   .admin-actions .ghost-button {
     @apply flex-1;
+  }
+
+  .action-bar {
+    @apply sticky bottom-2 z-30 bg-white/95 backdrop-blur;
   }
 
   .timer-actions,

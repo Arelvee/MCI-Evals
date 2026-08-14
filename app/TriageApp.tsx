@@ -974,43 +974,45 @@ export function TriageApp() {
         </aside>
       ) : null}
 
-      <section className="day-switcher" aria-label="Training day">
-        {DAYS.map((day) => (
-          <button
-            key={day.key}
-            className={day.key === session.day ? "day-pill active" : "day-pill"}
-            type="button"
-            disabled={!day.ready}
-            onClick={() => switchDay(day.key)}
-          >
-            <CalendarDays size={18} aria-hidden="true" />
-            <span>{day.label}</span>
-            <small>{day.ready ? "Ready" : "Pending"}</small>
-          </button>
-        ))}
-      </section>
+      <section className="workspace-layout">
+        <aside className="control-panel" aria-label="Score sheet controls">
+          <section className="day-switcher" aria-label="Training day">
+            {DAYS.map((day) => (
+              <button
+                key={day.key}
+                className={day.key === session.day ? "day-pill active" : "day-pill"}
+                type="button"
+                disabled={!day.ready}
+                onClick={() => switchDay(day.key)}
+              >
+                <CalendarDays size={18} aria-hidden="true" />
+                <span>{day.label}</span>
+                <small>{day.ready ? "Ready" : "Pending"}</small>
+              </button>
+            ))}
+          </section>
 
-      <nav className="view-switcher" aria-label="Application area">
-        <button
-          className={view === "evaluation" ? "active" : ""}
-          type="button"
-          onClick={() => setView("evaluation")}
-        >
-          <Users size={18} aria-hidden="true" />
-          Evaluation
-        </button>
-        <button
-          className={view === "admin" ? "active" : ""}
-          type="button"
-          onClick={() => setView("admin")}
-        >
-          <ShieldCheck size={18} aria-hidden="true" />
-          Admin
-        </button>
-      </nav>
+          <nav className="view-switcher" aria-label="Application area">
+            <button
+              className={view === "evaluation" ? "active" : ""}
+              type="button"
+              onClick={() => setView("evaluation")}
+            >
+              <Users size={18} aria-hidden="true" />
+              Evaluation
+            </button>
+            <button
+              className={view === "admin" ? "active" : ""}
+              type="button"
+              onClick={() => setView("admin")}
+            >
+              <ShieldCheck size={18} aria-hidden="true" />
+              Admin
+            </button>
+          </nav>
 
-      {view === "evaluation" ? (
-        <>
+          {view === "evaluation" ? (
+            <>
           <section className="identity-grid" aria-label="Evaluation details">
             <label>
               Evaluator Name
@@ -1114,8 +1116,44 @@ export function TriageApp() {
             </div>
           </section>
 
-          <section className="workbench">
-            <section className="score-sheet" aria-label={`${dayConfig.label} score sheet`}>
+              <section className="action-bar" aria-live="polite">
+                <button className="primary-button" type="button" onClick={saveCurrent}>
+                  <Save size={18} aria-hidden="true" />
+                  Save Sheet
+                </button>
+                <button className="ghost-button" type="button" onClick={() => exportCurrent("csv")}>
+                  <FileDown size={18} aria-hidden="true" />
+                  Export CSV
+                </button>
+                <button className="ghost-button" type="button" onClick={() => exportCurrent("json")}>
+                  <Download size={18} aria-hidden="true" />
+                  Export JSON
+                </button>
+                <button className="ghost-button" type="button" onClick={createNewSheet}>
+                  <Plus size={18} aria-hidden="true" />
+                  New Sheet
+                </button>
+                {status ? <span>{status}</span> : null}
+              </section>
+            </>
+          ) : (
+            <section className="control-note">
+              <div className="section-title">
+                <ShieldCheck size={20} aria-hidden="true" />
+                <h2>Admin Mode</h2>
+              </div>
+              <p>
+                Review saved sheets, import JSON exports from evaluator devices, and export
+                combined analytics.
+              </p>
+            </section>
+          )}
+        </aside>
+
+        <section className="workspace-main">
+          {view === "evaluation" ? (
+            <section className="workbench">
+              <section className="score-sheet" aria-label={`${dayConfig.label} score sheet`}>
               <div className="score-header">
                 <div>
                   <p className="eyebrow">Scoring</p>
@@ -1272,30 +1310,9 @@ export function TriageApp() {
                 ))}
               </div>
             </section>
-          </section>
-
-          <section className="action-bar" aria-live="polite">
-            <button className="primary-button" type="button" onClick={saveCurrent}>
-              <Save size={18} aria-hidden="true" />
-              Save Sheet
-            </button>
-            <button className="ghost-button" type="button" onClick={() => exportCurrent("csv")}>
-              <FileDown size={18} aria-hidden="true" />
-              Export CSV
-            </button>
-            <button className="ghost-button" type="button" onClick={() => exportCurrent("json")}>
-              <Download size={18} aria-hidden="true" />
-              Export JSON
-            </button>
-            <button className="ghost-button" type="button" onClick={createNewSheet}>
-              <Plus size={18} aria-hidden="true" />
-              New Sheet
-            </button>
-            {status ? <span>{status}</span> : null}
-          </section>
-        </>
-      ) : (
-        <section className="admin-area">
+            </section>
+          ) : (
+            <section className="admin-area">
           {!adminUnlocked ? (
             <form className="admin-lock" onSubmit={unlockAdmin}>
               <div className="lock-icon">
@@ -1487,8 +1504,10 @@ export function TriageApp() {
               </div>
             </>
           )}
+            </section>
+          )}
         </section>
-      )}
+      </section>
     </main>
   );
 }

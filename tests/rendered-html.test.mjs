@@ -54,6 +54,8 @@ test("ships Day 1 and Day 2 scoring with PWA assets", async () => {
   assert.match(app, /SAVE/);
   assert.match(app, /SORT/);
   assert.match(app, /Add Member/);
+  assert.match(app, /workspace-layout/);
+  assert.match(app, /control-panel/);
   assert.match(app, /member-picker-grid/);
   assert.match(app, /1 point each correct triage tag/);
   assert.match(app, /removeMember/);
