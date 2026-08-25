@@ -38,9 +38,10 @@ test("server-renders the triage app shell", async () => {
 });
 
 test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
-  const [app, layout, manifest, serviceWorker, packageJson] = await Promise.all([
+  const [app, layout, api, manifest, serviceWorker, packageJson] = await Promise.all([
     readFile(new URL("../app/TriageApp.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../api/triage-sync.ts", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -106,6 +107,11 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /sessionHasData/);
   assert.match(app, /freezeRunningTimers/);
   assert.match(app, /Check Admin saved records/);
+  assert.match(app, /Supabase Cloud Sync/);
+  assert.match(app, /Sync Key/);
+  assert.match(app, /Pull Records/);
+  assert.match(app, /syncCloudNow/);
+  assert.match(app, /CLOUD_SYNC_KEY/);
   assert.match(app, /Offline mode/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
@@ -113,11 +119,20 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v13"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v14"/);
+  assert.match(serviceWorker, /isApiRequest/);
+  assert.match(serviceWorker, /!isApiRequest\(request\)/);
   assert.match(serviceWorker, /precacheAppShell/);
   assert.match(serviceWorker, /cachedBuildAssetFallback/);
   assert.match(serviceWorker, /APP_SHELL_ASSETS/);
   assert.match(serviceWorker, /navigationResponse/);
+  assert.match(api, /SUPABASE_URL/);
+  assert.match(api, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(api, /TRIAGE_SYNC_TOKEN/);
+  assert.match(api, /triage_sessions\?on_conflict=id/);
+  assert.match(api, /triage_app_state\?on_conflict=key/);
+  assert.match(api, /resolution=merge-duplicates/);
+  assert.match(api, /Cloud sync key did not match/);
   assert.match(packageJson, /"lucide-react"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.doesNotMatch(app, /_sites-preview|codex-preview/);

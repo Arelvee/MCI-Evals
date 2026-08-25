@@ -1,4 +1,4 @@
-const CACHE_NAME = "mci-triage-pwa-v13";
+const CACHE_NAME = "mci-triage-pwa-v14";
 const APP_SHELL_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -56,6 +56,10 @@ self.addEventListener("activate", (event) => {
 
 function isSameOrigin(request) {
   return new URL(request.url).origin === self.location.origin;
+}
+
+function isApiRequest(request) {
+  return new URL(request.url).pathname.startsWith("/api/");
 }
 
 function canCache(response) {
@@ -147,7 +151,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isSameOrigin(request)) {
+  if (isSameOrigin(request) && !isApiRequest(request)) {
     event.respondWith(cachedAssetResponse(request));
   }
 });

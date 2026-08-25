@@ -787,6 +787,52 @@
     @apply flex-wrap justify-end gap-2;
   }
 
+  .cloud-sync-card {
+    @apply grid gap-3 rounded-lg border border-emerald-100 bg-white/90 p-3 shadow-sm shadow-slate-900/5;
+  }
+
+  .cloud-sync-head,
+  .cloud-sync-actions {
+    @apply flex items-center;
+  }
+
+  .cloud-sync-head {
+    @apply justify-between gap-3;
+  }
+
+  .cloud-sync-grid {
+    @apply grid gap-3 lg:grid-cols-[minmax(220px,360px)_auto] lg:items-end;
+  }
+
+  .cloud-sync-actions {
+    @apply flex-wrap gap-2;
+  }
+
+  .sync-status-pill {
+    @apply inline-flex rounded-md border px-2.5 py-1 text-xs font-black uppercase;
+  }
+
+  .sync-status-pill.local,
+  .sync-status-pill.ready {
+    @apply border-stone-200 bg-stone-50 text-stone-600;
+  }
+
+  .sync-status-pill.syncing {
+    @apply border-amber-200 bg-amber-50 text-amber-700;
+  }
+
+  .sync-status-pill.synced {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+
+  .sync-status-pill.error {
+    @apply border-red-200 bg-red-50 text-red-700;
+  }
+
+  .cloud-sync-message {
+    @apply mb-0 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold leading-relaxed text-emerald-900;
+  }
+
   .metric-grid {
     @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-4;
   }
@@ -994,6 +1040,7 @@
 
   .timer-actions,
   .install-actions,
+  .cloud-sync-actions,
   .admin-actions {
     @apply w-full;
   }

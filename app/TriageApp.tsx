@@ -5,12 +5,14 @@ import {
   BarChart3,
   Calculator,
   CalendarDays,
+  Cloud,
   Download,
   FileDown,
   Lock,
   Medal,
   Play,
   Plus,
+  RefreshCw,
   RotateCcw,
   Save,
   ShieldCheck,
@@ -79,6 +81,17 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
+type CloudSyncState = "local" | "ready" | "syncing" | "synced" | "error";
+
+type CloudSyncResponse = {
+  enabled?: boolean;
+  message?: string;
+  missing?: string[];
+  saved?: number;
+  sessions?: unknown[];
+  scorebookOverrides?: unknown;
+};
+
 type VictimRecord = {
   id: string;
   correct: Partial<Record<Method, { tags: Tag[]; note?: string }>>;
@@ -106,6 +119,8 @@ const DRAFT_KEY = "mci-triage-current-draft-v2";
 const LEGACY_DRAFT_KEYS = ["mci-triage-current-draft-v1"];
 const ADMIN_KEY = "mci-triage-admin-passcode-v1";
 const SCOREBOOK_KEY = "mci-triage-scorebook-v1";
+const CLOUD_SYNC_KEY = "mci-triage-cloud-sync-key-v1";
+const CLOUD_LAST_SYNC_KEY = "mci-triage-cloud-last-sync-v1";
 const QUIZ_CONFIGS: { key: QuizKey; label: string; max: number; weight: number }[] = [
   { key: "startQuiz", label: "START Quiz", max: 10, weight: 0.05 },
   { key: "jumpstartQuiz", label: "JumpSTART Quiz", max: 18, weight: 0.05 },
@@ -114,6 +129,13 @@ const QUIZ_CONFIGS: { key: QuizKey; label: string; max: number; weight: number }
   { key: "postTest", label: "Post Test", max: 15, weight: 0.6 },
 ];
 const GRADE_LABELS = ["Excellent", "Very Good", "Passed", "Needs Review", "Remedial"];
+const CLOUD_STATUS_LABELS: Record<CloudSyncState, string> = {
+  local: "Local only",
+  ready: "Ready",
+  syncing: "Syncing",
+  synced: "Synced",
+  error: "Needs setup",
+};
 
 const TAG_LABELS: Record<Tag, string> = {
   GREEN: "Green",
@@ -670,6 +692,35 @@ function freezeRunningTimers(session: EvaluationSession): EvaluationSession {
   };
 }
 
+function mergeSessionsByUpdatedAt(
+  localSessions: EvaluationSession[],
+  incomingSessions: EvaluationSession[],
+) {
+  const merged = new Map<string, EvaluationSession>();
+
+  [...localSessions, ...incomingSessions].forEach((session) => {
+    const shapedSession = ensureSessionShape(session);
+    const current = merged.get(shapedSession.id);
+    if (
+      !current ||
+      new Date(shapedSession.updatedAt).getTime() >= new Date(current.updatedAt).getTime()
+    ) {
+      merged.set(shapedSession.id, shapedSession);
+    }
+  });
+
+  return Array.from(merged.values()).sort((left, right) =>
+    right.updatedAt.localeCompare(left.updatedAt),
+  );
+}
+
+function sessionsSignature(sessions: EvaluationSession[]) {
+  return sessions
+    .map((session) => `${session.id}:${session.updatedAt}`)
+    .sort()
+    .join("|");
+}
+
 function csvCell(value: string | number) {
   const text = String(value);
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
@@ -829,6 +880,22 @@ function yearKey(date: string) {
   return date ? date.slice(0, 4) : "No date";
 }
 
+function dateTimeLabel(value: string) {
+  if (!value) {
+    return "Never";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Never";
+  }
+
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 function tagClass(tag: Answer) {
   return tag ? `tag-${tag.toLowerCase()}` : "";
 }
@@ -871,6 +938,10 @@ export function TriageApp() {
   const [adminPasscodeExists, setAdminPasscodeExists] = useState(false);
   const [adminPasscode, setAdminPasscode] = useState("");
   const [adminMessage, setAdminMessage] = useState("");
+  const [cloudSyncKey, setCloudSyncKey] = useState("");
+  const [cloudStatus, setCloudStatus] = useState<CloudSyncState>("local");
+  const [cloudMessage, setCloudMessage] = useState("Local-only storage is active.");
+  const [lastCloudSync, setLastCloudSync] = useState("");
   const [scorebookOverrides, setScorebookOverrides] = useState<
     Record<string, ScorebookOverride>
   >({});
@@ -885,6 +956,7 @@ export function TriageApp() {
   const [online, setOnline] = useState(true);
   const [offlineReady, setOfflineReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cloudSignatureRef = useRef("");
 
   useEffect(() => {
     let cancelled = false;
@@ -897,6 +969,8 @@ export function TriageApp() {
       const savedSessions = localStorage.getItem(SESSION_KEY);
       const savedDraft = localStorage.getItem(DRAFT_KEY);
       const savedScorebook = localStorage.getItem(SCOREBOOK_KEY);
+      const savedCloudSyncKey = localStorage.getItem(CLOUD_SYNC_KEY) ?? "";
+      const savedLastCloudSync = localStorage.getItem(CLOUD_LAST_SYNC_KEY) ?? "";
       const parsedSessions = parseStoredJson<unknown[]>(savedSessions, []);
       const parsedDraft = parseStoredJson<unknown>(savedDraft, null);
       const parsedScorebook = parseStoredJson<unknown>(savedScorebook, {});
@@ -928,6 +1002,14 @@ export function TriageApp() {
         isRecord(parsedScorebook)
           ? (parsedScorebook as Record<string, ScorebookOverride>)
           : {},
+      );
+      setCloudSyncKey(savedCloudSyncKey);
+      setLastCloudSync(savedLastCloudSync);
+      setCloudStatus(savedCloudSyncKey ? "ready" : "local");
+      setCloudMessage(
+        savedCloudSyncKey
+          ? "Cloud sync key is saved on this device."
+          : "Local-only storage is active.",
       );
       setAdminPasscodeExists(Boolean(localStorage.getItem(ADMIN_KEY)));
       if (newlyRecovered.length > 0) {
@@ -1054,6 +1136,62 @@ export function TriageApp() {
       localStorage.setItem(SCOREBOOK_KEY, JSON.stringify(scorebookOverrides));
     }
   }, [hydrated, scorebookOverrides]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    const trimmedKey = cloudSyncKey.trim();
+    if (trimmedKey) {
+      localStorage.setItem(CLOUD_SYNC_KEY, trimmedKey);
+      return;
+    }
+
+    localStorage.removeItem(CLOUD_SYNC_KEY);
+  }, [cloudSyncKey, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated || !online || !cloudSyncKey.trim() || sessions.length === 0) {
+      return;
+    }
+
+    const signature = sessionsSignature(sessions);
+    if (cloudSignatureRef.current === signature) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      const syncQuietly = async () => {
+        try {
+          const response = await fetch("/api/triage-sync", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${cloudSyncKey.trim()}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessions: sessions.map(normalizeTimers) }),
+          });
+
+          if (response.ok) {
+            const stamp = new Date().toISOString();
+            cloudSignatureRef.current = signature;
+            localStorage.setItem(CLOUD_LAST_SYNC_KEY, stamp);
+            setLastCloudSync(stamp);
+            setCloudStatus("synced");
+            setCloudMessage("Cloud sync is up to date.");
+          }
+        } catch {
+          setCloudStatus("error");
+          setCloudMessage("Cloud sync paused. Saved sheets remain on this device.");
+        }
+      };
+
+      void syncQuietly();
+    }, 1600);
+
+    return () => window.clearTimeout(timeout);
+  }, [cloudSyncKey, hydrated, online, sessions]);
 
   const dayKey = session?.day ?? "day1";
   const dayConfig = getDayConfig(dayKey);
@@ -1432,6 +1570,159 @@ export function TriageApp() {
     setStatus(`Removed Member ${memberIndex + 1}.`);
   }
 
+  async function callCloudSync(
+    method: "GET" | "POST",
+    body?: Record<string, unknown>,
+  ): Promise<CloudSyncResponse> {
+    const trimmedKey = cloudSyncKey.trim();
+    if (!trimmedKey) {
+      throw new Error("Add the cloud sync key first.");
+    }
+
+    const response = await fetch("/api/triage-sync", {
+      method,
+      headers: {
+        Authorization: `Bearer ${trimmedKey}`,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const payload = (await response.json().catch(() => ({}))) as CloudSyncResponse;
+
+    if (!response.ok) {
+      const missing = payload.missing?.length
+        ? ` Missing: ${payload.missing.join(", ")}.`
+        : "";
+      throw new Error(`${payload.message ?? "Cloud sync failed."}${missing}`);
+    }
+
+    return payload;
+  }
+
+  function rememberCloudSync() {
+    const stamp = new Date().toISOString();
+    localStorage.setItem(CLOUD_LAST_SYNC_KEY, stamp);
+    setLastCloudSync(stamp);
+  }
+
+  function mergeCloudPayload(payload: CloudSyncResponse, mergeScorebook = true) {
+    const incomingSessions = Array.isArray(payload.sessions)
+      ? payload.sessions.filter(isSessionLike).map(ensureSessionShape)
+      : [];
+
+    if (incomingSessions.length) {
+      setSessions((current) => mergeSessionsByUpdatedAt(current, incomingSessions));
+    }
+
+    if (mergeScorebook && isRecord(payload.scorebookOverrides)) {
+      setScorebookOverrides((current) => ({
+        ...(payload.scorebookOverrides as Record<string, ScorebookOverride>),
+        ...current,
+      }));
+    }
+
+    return incomingSessions.length;
+  }
+
+  async function pushCloudSessions(
+    records: EvaluationSession[],
+    options: { includeScorebook?: boolean; silent?: boolean; signature?: string } = {},
+  ) {
+    if (!cloudSyncKey.trim()) {
+      if (!options.silent) {
+        setCloudStatus("local");
+        setCloudMessage("Add the cloud sync key first.");
+      }
+      return false;
+    }
+
+    if (!online) {
+      if (!options.silent) {
+        setCloudStatus("error");
+        setCloudMessage("You are offline. Saved sheets will sync when internet is back.");
+      }
+      return false;
+    }
+
+    if (!options.silent) {
+      setCloudStatus("syncing");
+      setCloudMessage("Syncing saved sheets to Supabase...");
+    }
+
+    try {
+      const payload = await callCloudSync("POST", {
+        sessions: records.map(normalizeTimers),
+        ...(options.includeScorebook ? { scorebookOverrides } : {}),
+      });
+      if (options.signature) {
+        cloudSignatureRef.current = options.signature;
+      }
+      rememberCloudSync();
+      setCloudStatus("synced");
+      setCloudMessage(
+        `Cloud synced ${payload.saved ?? records.length} saved sheet${
+          (payload.saved ?? records.length) === 1 ? "" : "s"
+        }.`,
+      );
+      return true;
+    } catch (error) {
+      setCloudStatus("error");
+      setCloudMessage(error instanceof Error ? error.message : "Cloud sync failed.");
+      return false;
+    }
+  }
+
+  async function pullCloudRecords() {
+    if (!cloudSyncKey.trim()) {
+      setCloudStatus("local");
+      setCloudMessage("Add the cloud sync key first.");
+      return;
+    }
+
+    if (!online) {
+      setCloudStatus("error");
+      setCloudMessage("You are offline. Pull cloud records once internet is back.");
+      return;
+    }
+
+    setCloudStatus("syncing");
+    setCloudMessage("Pulling Supabase records...");
+
+    try {
+      const payload = await callCloudSync("GET");
+      const count = mergeCloudPayload(payload);
+      rememberCloudSync();
+      setCloudStatus("synced");
+      setCloudMessage(
+        count
+          ? `Pulled ${count} cloud record${count === 1 ? "" : "s"}.`
+          : "No new cloud records found.",
+      );
+      setAdminMessage(
+        count
+          ? `Pulled ${count} cloud record${count === 1 ? "" : "s"}.`
+          : "No new cloud records found.",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Cloud pull failed.";
+      setCloudStatus("error");
+      setCloudMessage(message);
+      setAdminMessage(message);
+    }
+  }
+
+  async function syncCloudNow() {
+    setCloudStatus("syncing");
+    setCloudMessage("Syncing all saved sheets and scorebook...");
+    const pushed = await pushCloudSessions(sessions, {
+      includeScorebook: true,
+      signature: sessionsSignature(sessions),
+    });
+    if (pushed) {
+      await pullCloudRecords();
+    }
+  }
+
   function saveCurrent() {
     if (!session) {
       return;
@@ -1444,6 +1735,7 @@ export function TriageApp() {
       ...current.filter((savedSession) => savedSession.id !== frozen.id),
     ]);
     setStatus(`Saved ${getDayConfig(frozen.day).label} score sheet.`);
+    void pushCloudSessions([frozen], { silent: true });
   }
 
   function createNewSheet() {
@@ -2276,6 +2568,66 @@ export function TriageApp() {
                   </button>
                 </div>
               </div>
+
+              <section className="cloud-sync-card">
+                <div className="cloud-sync-head">
+                  <div className="section-title">
+                    <Cloud size={20} aria-hidden="true" />
+                    <h3>Supabase Cloud Sync</h3>
+                  </div>
+                  <span className={`sync-status-pill ${cloudStatus}`}>
+                    {CLOUD_STATUS_LABELS[cloudStatus]}
+                  </span>
+                </div>
+                <div className="cloud-sync-grid">
+                  <label>
+                    Sync Key
+                    <input
+                      type="password"
+                      value={cloudSyncKey}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setCloudSyncKey(value);
+                        if (value.trim()) {
+                          setCloudStatus((current) =>
+                            current === "local" ? "ready" : current,
+                          );
+                          setCloudMessage("Cloud sync key is saved on this device.");
+                          return;
+                        }
+
+                        setCloudStatus("local");
+                        setCloudMessage("Local-only storage is active.");
+                      }}
+                      placeholder="Enter shared sync key"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <div className="cloud-sync-actions">
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={() => void syncCloudNow()}
+                      disabled={cloudStatus === "syncing"}
+                    >
+                      <RefreshCw size={18} aria-hidden="true" />
+                      Sync Now
+                    </button>
+                    <button
+                      className="ghost-button"
+                      type="button"
+                      onClick={() => void pullCloudRecords()}
+                      disabled={cloudStatus === "syncing"}
+                    >
+                      <Download size={18} aria-hidden="true" />
+                      Pull Records
+                    </button>
+                  </div>
+                </div>
+                <p className="cloud-sync-message">
+                  {cloudMessage} Last sync: {dateTimeLabel(lastCloudSync)}.
+                </p>
+              </section>
 
               <section className="scorebook-area">
                 <div className="scorebook-head">
