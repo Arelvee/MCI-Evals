@@ -112,6 +112,13 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /Pull Records/);
   assert.match(app, /syncCloudNow/);
   assert.match(app, /CLOUD_SYNC_KEY/);
+  assert.match(app, /Training Calendar/);
+  assert.match(app, /calendarCells/);
+  assert.match(app, /selectedTrainingDate/);
+  assert.match(app, /Fast Score Entry/);
+  assert.match(app, /ScoreStepper/);
+  assert.match(app, /score-preset-button/);
+  assert.match(app, /Full Score Table/);
   assert.match(app, /Offline mode/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
@@ -119,7 +126,7 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v14"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v15"/);
   assert.match(serviceWorker, /isApiRequest/);
   assert.match(serviceWorker, /!isApiRequest\(request\)/);
   assert.match(serviceWorker, /precacheAppShell/);

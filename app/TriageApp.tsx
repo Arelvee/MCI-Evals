@@ -5,11 +5,14 @@ import {
   BarChart3,
   Calculator,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Cloud,
   Download,
   FileDown,
   Lock,
   Medal,
+  Minus,
   Play,
   Plus,
   RefreshCw,
@@ -90,6 +93,30 @@ type CloudSyncResponse = {
   saved?: number;
   sessions?: unknown[];
   scorebookOverrides?: unknown;
+};
+
+type CalendarDateStats = {
+  date: string;
+  participants: number;
+  sessions: number;
+  meanFinal: number;
+  trainings: string[];
+};
+
+type CalendarCell = {
+  key: string;
+  date: string;
+  day: number;
+  inMonth: boolean;
+  isToday: boolean;
+  stats?: CalendarDateStats;
+};
+
+type ScoreStepperProps = {
+  label: string;
+  max: number;
+  value: ScoreValue | undefined;
+  onChange: (value: string) => void;
 };
 
 type VictimRecord = {
@@ -459,6 +486,81 @@ function newId() {
 
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function dateKeyFromParts(year: number, monthIndex: number, day: number) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function parseMonthKey(value: string) {
+  const [yearText, monthText] = value.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    const today = new Date();
+    return { year: today.getFullYear(), monthIndex: today.getMonth() };
+  }
+
+  return { year, monthIndex: month - 1 };
+}
+
+function normalizedDateKey(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return "";
+  }
+
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+  const day = Number(dayText);
+  const date = new Date(year, monthIndex, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== monthIndex ||
+    date.getDate() !== day
+  ) {
+    return "";
+  }
+
+  return dateKeyFromParts(year, monthIndex, day);
+}
+
+function addMonths(month: string, amount: number) {
+  const { year, monthIndex } = parseMonthKey(month);
+  const date = new Date(year, monthIndex + amount, 1);
+  return dateKeyFromParts(date.getFullYear(), date.getMonth(), 1).slice(0, 7);
+}
+
+function monthLabel(month: string) {
+  const { year, monthIndex } = parseMonthKey(month);
+  return new Date(year, monthIndex, 1).toLocaleString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function calendarCells(month: string, statsByDate: Map<string, CalendarDateStats>) {
+  const { year, monthIndex } = parseMonthKey(month);
+  const firstDay = new Date(year, monthIndex, 1);
+  const start = new Date(year, monthIndex, 1 - firstDay.getDay());
+  const todayKey = todayInputValue();
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const key = dateKeyFromParts(date.getFullYear(), date.getMonth(), date.getDate());
+
+    return {
+      key,
+      date: key,
+      day: date.getDate(),
+      inMonth: date.getMonth() === monthIndex,
+      isToday: key === todayKey,
+      stats: statsByDate.get(key),
+    };
+  }) as CalendarCell[];
 }
 
 function parseStoredJson<T>(value: string | null, fallback: T): T {
@@ -896,6 +998,68 @@ function dateTimeLabel(value: string) {
   });
 }
 
+function ScoreStepper({ label, max, value, onChange }: ScoreStepperProps) {
+  const numericValue = scoreValue(value);
+  const displayValue = value ?? "";
+
+  return (
+    <div className="score-stepper">
+      <div className="score-stepper-label">
+        <span>{label}</span>
+        <strong>
+          {numericValue}/{max}
+        </strong>
+      </div>
+      <div className="score-stepper-controls">
+        <button
+          className="icon-button score-step-button"
+          type="button"
+          title={`Decrease ${label}`}
+          aria-label={`Decrease ${label}`}
+          onClick={() => onChange(String(Math.max(0, numericValue - 1)))}
+          disabled={numericValue <= 0}
+        >
+          <Minus size={16} aria-hidden="true" />
+        </button>
+        <input
+          inputMode="decimal"
+          min="0"
+          max={max}
+          type="number"
+          value={displayValue}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={`/${max}`}
+          aria-label={label}
+        />
+        <button
+          className="icon-button score-step-button"
+          type="button"
+          title={`Increase ${label}`}
+          aria-label={`Increase ${label}`}
+          onClick={() => onChange(String(Math.min(max, numericValue + 1)))}
+          disabled={numericValue >= max}
+        >
+          <Plus size={16} aria-hidden="true" />
+        </button>
+        <button
+          className="score-preset-button"
+          type="button"
+          onClick={() => onChange("0")}
+        >
+          0
+        </button>
+        <button
+          className="score-preset-button"
+          type="button"
+          onClick={() => onChange(String(max))}
+        >
+          Max
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function tagClass(tag: Answer) {
   return tag ? `tag-${tag.toLowerCase()}` : "";
 }
@@ -942,6 +1106,8 @@ export function TriageApp() {
   const [cloudStatus, setCloudStatus] = useState<CloudSyncState>("local");
   const [cloudMessage, setCloudMessage] = useState("Local-only storage is active.");
   const [lastCloudSync, setLastCloudSync] = useState("");
+  const [calendarMonth, setCalendarMonth] = useState(() => monthKey(todayInputValue()));
+  const [selectedTrainingDate, setSelectedTrainingDate] = useState<string | null>(null);
   const [scorebookOverrides, setScorebookOverrides] = useState<
     Record<string, ScorebookOverride>
   >({});
@@ -1436,6 +1602,69 @@ export function TriageApp() {
     };
   }, [scorebookRows]);
 
+  const trainingCalendarStats = useMemo(() => {
+    const groups = new Map<
+      string,
+      {
+        participants: number;
+        sessionIds: Set<string>;
+        finalScores: number[];
+        trainings: Set<string>;
+      }
+    >();
+
+    scorebookRows.forEach((row) => {
+      const date = normalizedDateKey(row.trainingDate);
+      if (!date) {
+        return;
+      }
+
+      const group =
+        groups.get(date) ??
+        {
+          participants: 0,
+          sessionIds: new Set<string>(),
+          finalScores: [],
+          trainings: new Set<string>(),
+        };
+      group.participants += 1;
+      group.sessionIds.add(row.session.id);
+      group.finalScores.push(row.finalPercent);
+      group.trainings.add(row.trainingName || row.config.label);
+      groups.set(date, group);
+    });
+
+    return new Map(
+      Array.from(groups.entries()).map(([date, group]) => [
+        date,
+        {
+          date,
+          participants: group.participants,
+          sessions: group.sessionIds.size,
+          meanFinal: average(group.finalScores),
+          trainings: Array.from(group.trainings).sort(),
+        },
+      ]),
+    ) as Map<string, CalendarDateStats>;
+  }, [scorebookRows]);
+
+  const selectedTrainingStats = selectedTrainingDate
+    ? trainingCalendarStats.get(selectedTrainingDate)
+    : null;
+  const trainingCalendarCells = useMemo(
+    () => calendarCells(calendarMonth, trainingCalendarStats),
+    [calendarMonth, trainingCalendarStats],
+  );
+  const visibleScorebookRows = useMemo(() => {
+    if (!selectedTrainingDate) {
+      return scorebookRows;
+    }
+
+    return scorebookRows.filter(
+      (row) => normalizedDateKey(row.trainingDate) === selectedTrainingDate,
+    );
+  }, [scorebookRows, selectedTrainingDate]);
+
   function updateSession(updater: (current: EvaluationSession) => EvaluationSession) {
     setSession((current) => {
       if (!current) {
@@ -1721,6 +1950,15 @@ export function TriageApp() {
     if (pushed) {
       await pullCloudRecords();
     }
+  }
+
+  function selectCalendarDate(date: string) {
+    setCalendarMonth(monthKey(date));
+    setSelectedTrainingDate((current) => (current === date ? null : date));
+  }
+
+  function clearCalendarFilter() {
+    setSelectedTrainingDate(null);
   }
 
   function saveCurrent() {
@@ -2629,6 +2867,117 @@ export function TriageApp() {
                 </p>
               </section>
 
+              <section className="training-calendar-card">
+                <div className="calendar-toolbar">
+                  <div className="section-title">
+                    <CalendarDays size={20} aria-hidden="true" />
+                    <h3>Training Calendar</h3>
+                  </div>
+                  <div className="calendar-month-controls">
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title="Previous month"
+                      aria-label="Previous month"
+                      onClick={() => setCalendarMonth((current) => addMonths(current, -1))}
+                    >
+                      <ChevronLeft size={17} aria-hidden="true" />
+                    </button>
+                    <strong>{monthLabel(calendarMonth)}</strong>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title="Next month"
+                      aria-label="Next month"
+                      onClick={() => setCalendarMonth((current) => addMonths(current, 1))}
+                    >
+                      <ChevronRight size={17} aria-hidden="true" />
+                    </button>
+                    <button
+                      className="ghost-button compact-button"
+                      type="button"
+                      onClick={() => {
+                        setCalendarMonth(monthKey(todayInputValue()));
+                        clearCalendarFilter();
+                      }}
+                    >
+                      Today
+                    </button>
+                  </div>
+                </div>
+
+                <div className="training-calendar-layout">
+                  <div className="training-calendar-grid">
+                    <div className="calendar-weekdays" aria-hidden="true">
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                        <span key={day}>{day}</span>
+                      ))}
+                    </div>
+                    <div className="calendar-days">
+                      {trainingCalendarCells.map((cell) => {
+                        const isSelected = selectedTrainingDate === cell.date;
+                        const hasData = Boolean(cell.stats);
+
+                        return (
+                          <button
+                            className={`calendar-day ${cell.inMonth ? "" : "muted"} ${
+                              hasData ? "has-data" : ""
+                            } ${isSelected ? "selected" : ""} ${cell.isToday ? "today" : ""}`}
+                            key={cell.key}
+                            type="button"
+                            onClick={() => selectCalendarDate(cell.date)}
+                          >
+                            <time dateTime={cell.date}>{cell.day}</time>
+                            {cell.stats ? (
+                              <>
+                                <span>{cell.stats.participants} pax</span>
+                                <small>{percentLabel(cell.stats.meanFinal)}</small>
+                              </>
+                            ) : (
+                              <i aria-hidden="true" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <aside className="calendar-summary-card">
+                    <span>{selectedTrainingDate ?? "All Dates"}</span>
+                    <strong>
+                      {selectedTrainingStats
+                        ? `${selectedTrainingStats.participants} participants`
+                        : `${scorebookAnalytics.participantCount} participants`}
+                    </strong>
+                    <small>
+                      {selectedTrainingStats
+                        ? `${selectedTrainingStats.sessions} sheet${
+                            selectedTrainingStats.sessions === 1 ? "" : "s"
+                          } | ${percentLabel(selectedTrainingStats.meanFinal)} mean final`
+                        : `${trainingCalendarStats.size} date${
+                            trainingCalendarStats.size === 1 ? "" : "s"
+                          } with records`}
+                    </small>
+                    {selectedTrainingStats ? (
+                      <div className="calendar-training-list">
+                        {selectedTrainingStats.trainings.slice(0, 4).map((training) => (
+                          <em key={training}>{training}</em>
+                        ))}
+                      </div>
+                    ) : null}
+                    {selectedTrainingDate ? (
+                      <button
+                        className="ghost-button compact-button"
+                        type="button"
+                        onClick={clearCalendarFilter}
+                      >
+                        Show All
+                      </button>
+                    ) : null}
+                  </aside>
+                </div>
+              </section>
+
               <section className="scorebook-area">
                 <div className="scorebook-head">
                   <div className="section-title">
@@ -2729,12 +3078,152 @@ export function TriageApp() {
                   ))}
                 </div>
 
+                <section className="quick-score-area">
+                  <div className="quick-score-head">
+                    <div className="section-title">
+                      <Calculator size={20} aria-hidden="true" />
+                      <h3>Fast Score Entry</h3>
+                    </div>
+                    <span>
+                      {visibleScorebookRows.length}/{scorebookRows.length}
+                    </span>
+                  </div>
+                  {visibleScorebookRows.length ? (
+                    <div className="quick-score-grid">
+                      {visibleScorebookRows.map((row) => (
+                        <article className="quick-score-card" key={row.rowId}>
+                          <header>
+                            <div>
+                              <strong>{row.participantName || "Unnamed participant"}</strong>
+                              <span>
+                                {row.trainingName} | {row.trainingDate}
+                              </span>
+                            </div>
+                            <em>{percentLabel(row.finalPercent)}</em>
+                          </header>
+
+                          <div className="quick-score-fields">
+                            <label>
+                              Participant
+                              <input
+                                value={row.participantName}
+                                onChange={(event) =>
+                                  setScorebookText(
+                                    row.rowId,
+                                    "participantName",
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder="Full name"
+                              />
+                            </label>
+                            <label>
+                              Training
+                              <input
+                                value={row.trainingName}
+                                onChange={(event) =>
+                                  setScorebookText(
+                                    row.rowId,
+                                    "trainingName",
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder="Training or batch"
+                              />
+                            </label>
+                            <label>
+                              Date
+                              <input
+                                type="date"
+                                value={row.trainingDate}
+                                onChange={(event) =>
+                                  setScorebookText(
+                                    row.rowId,
+                                    "trainingDate",
+                                    event.target.value,
+                                  )
+                                }
+                              />
+                            </label>
+                          </div>
+
+                          <div className="quick-score-section">
+                            <h4>Quiz Scores</h4>
+                            <div className="quick-score-list">
+                              {QUIZ_CONFIGS.map((quiz) => (
+                                <ScoreStepper
+                                  key={quiz.key}
+                                  label={quiz.label}
+                                  max={quiz.max}
+                                  value={row.quizScores[quiz.key]}
+                                  onChange={(value) =>
+                                    setQuizScore(row.rowId, quiz.key, value)
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="quick-score-section">
+                            <h4>Simulation Scores</h4>
+                            <div className="quick-score-list">
+                              {row.config.methods.map((method) => (
+                                <ScoreStepper
+                                  key={method}
+                                  label={method}
+                                  max={row.config.victims.length}
+                                  value={row.simulationScores[method] ?? ""}
+                                  onChange={(value) =>
+                                    setSimulationScore(
+                                      row.rowId,
+                                      method,
+                                      value,
+                                      row.config.victims.length,
+                                    )
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="quick-score-results">
+                            <span>Quiz {percentLabel(row.examPercent)}</span>
+                            <span>Simulation {percentLabel(row.simulationPercent)}</span>
+                            <span>{row.grade}</span>
+                          </div>
+
+                          <label>
+                            Comments
+                            <input
+                              value={row.comments}
+                              onChange={(event) =>
+                                setScorebookText(
+                                  row.rowId,
+                                  "comments",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="Optional"
+                            />
+                          </label>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="empty-state">
+                      {scorebookRows.length
+                        ? "No score inputs for the selected date."
+                        : "Save or import simulation score sheets first."}
+                    </p>
+                  )}
+                </section>
+
                 <div className="scorebook-table">
                   <div className="section-title">
                     <TimerReset size={20} aria-hidden="true" />
-                    <h3>Editable Score Inputs</h3>
+                    <h3>Full Score Table</h3>
                   </div>
-                  {scorebookRows.length ? (
+                  {visibleScorebookRows.length ? (
                     <div className="table-scroll scorebook-scroll">
                       <table>
                         <thead>
@@ -2756,7 +3245,7 @@ export function TriageApp() {
                           </tr>
                         </thead>
                         <tbody>
-                          {scorebookRows.map((row) => (
+                          {visibleScorebookRows.map((row) => (
                             <tr key={row.rowId}>
                               <td>
                                 <input
