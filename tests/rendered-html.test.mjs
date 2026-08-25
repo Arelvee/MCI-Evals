@@ -96,7 +96,16 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /Install this app/);
   assert.match(app, /MciTriageLogo/);
   assert.match(app, /Install App/);
-  assert.match(app, /Offline ready/);
+  assert.match(app, /Live online/);
+  assert.match(app, /manifest\.webmanifest\?live=/);
+  assert.match(app, /const isOpen = event\.currentTarget\.open/);
+  assert.match(app, /parseStoredJson/);
+  assert.match(app, /isSessionLike/);
+  assert.match(app, /LEGACY_DRAFT_KEYS/);
+  assert.match(app, /mci-triage-current-draft-v1/);
+  assert.match(app, /sessionHasData/);
+  assert.match(app, /freezeRunningTimers/);
+  assert.match(app, /Check Admin saved records/);
   assert.match(app, /Offline mode/);
   assert.match(app, /Saved sheets and analytics stay private/);
   assert.match(app, /Export CSV/);
@@ -104,7 +113,9 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v10"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v13"/);
+  assert.match(serviceWorker, /precacheAppShell/);
+  assert.match(serviceWorker, /cachedBuildAssetFallback/);
   assert.match(serviceWorker, /APP_SHELL_ASSETS/);
   assert.match(serviceWorker, /navigationResponse/);
   assert.match(packageJson, /"lucide-react"/);

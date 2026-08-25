@@ -103,6 +103,7 @@ const ALL_METHODS: Method[] = ["START", "SIEVE", "SAVE", "SORT"];
 const TAGS: Tag[] = ["GREEN", "YELLOW", "RED", "BLACK"];
 const SESSION_KEY = "mci-triage-sessions-v1";
 const DRAFT_KEY = "mci-triage-current-draft-v2";
+const LEGACY_DRAFT_KEYS = ["mci-triage-current-draft-v1"];
 const ADMIN_KEY = "mci-triage-admin-passcode-v1";
 const SCOREBOOK_KEY = "mci-triage-scorebook-v1";
 const QUIZ_CONFIGS: { key: QuizKey; label: string; max: number; weight: number }[] = [
@@ -438,6 +439,31 @@ function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function parseStoredJson<T>(value: string | null, fallback: T): T {
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function isSessionLike(value: unknown): value is EvaluationSession {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "id" in value &&
+    Array.isArray((value as { members?: unknown }).members)
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function emptyAnswers() {
   return Object.fromEntries(allConfiguredVictimIds().map((victimId) => [victimId, ""])) as Record<
     string,
@@ -487,12 +513,21 @@ function createSession(day: DayKey = "day1"): EvaluationSession {
 }
 
 function ensureSessionShape(session: EvaluationSession): EvaluationSession {
+  const fallback = createSession();
   const day = DAY_CONFIGS[session.day] ? session.day : "day1";
-  const members = session.members.map(ensureMemberShape);
+  const members = Array.isArray(session.members)
+    ? session.members.map(ensureMemberShape)
+    : fallback.members;
   return {
+    ...fallback,
     ...session,
     day,
+    evaluatorName: session.evaluatorName ?? "",
+    evaluationDate: session.evaluationDate || fallback.evaluationDate,
+    teamName: session.teamName ?? "",
     members: day === "day3" ? members.map(migrateDayThreeLegacyAnswers) : members,
+    createdAt: session.createdAt ?? fallback.createdAt,
+    updatedAt: session.updatedAt ?? session.createdAt ?? fallback.updatedAt,
   };
 }
 
@@ -606,6 +641,33 @@ function memberHasData(member: MemberRecord, methods = ALL_METHODS) {
       );
     })
   );
+}
+
+function sessionHasData(session: EvaluationSession) {
+  const shapedSession = ensureSessionShape(session);
+  const methods = getDayConfig(shapedSession.day).methods;
+  return (
+    shapedSession.evaluatorName.trim().length > 0 ||
+    shapedSession.teamName.trim().length > 0 ||
+    shapedSession.members.some((member) => memberHasData(member, methods))
+  );
+}
+
+function freezeRunningTimers(session: EvaluationSession): EvaluationSession {
+  const shapedSession = ensureSessionShape(session);
+  return {
+    ...shapedSession,
+    members: shapedSession.members.map((member) => {
+      const frozen = { ...member } as MemberRecord;
+      ALL_METHODS.forEach((method) => {
+        frozen[method] = {
+          ...member[method],
+          timer: { elapsedMs: member[method].timer.elapsedMs, startedAt: null },
+        };
+      });
+      return frozen;
+    }),
+  };
 }
 
 function csvCell(value: string | number) {
@@ -835,16 +897,46 @@ export function TriageApp() {
       const savedSessions = localStorage.getItem(SESSION_KEY);
       const savedDraft = localStorage.getItem(DRAFT_KEY);
       const savedScorebook = localStorage.getItem(SCOREBOOK_KEY);
+      const parsedSessions = parseStoredJson<unknown[]>(savedSessions, []);
+      const parsedDraft = parseStoredJson<unknown>(savedDraft, null);
+      const parsedScorebook = parseStoredJson<unknown>(savedScorebook, {});
+      const currentDraft = isSessionLike(parsedDraft) ? ensureSessionShape(parsedDraft) : null;
+      const shapedSessions = Array.isArray(parsedSessions)
+        ? parsedSessions.filter(isSessionLike).map(ensureSessionShape)
+        : [];
+      const recoveredDrafts = LEGACY_DRAFT_KEYS.map((key) =>
+        parseStoredJson<unknown>(localStorage.getItem(key), null),
+      )
+        .filter(isSessionLike)
+        .map(freezeRunningTimers)
+        .filter(sessionHasData);
+      const sessionsById = new Map(shapedSessions.map((item) => [item.id, item]));
+      const newlyRecovered = recoveredDrafts.filter((draft) => !sessionsById.has(draft.id));
+
+      newlyRecovered.forEach((draft) => sessionsById.set(draft.id, draft));
       setSessions(
-        savedSessions
-          ? (JSON.parse(savedSessions) as EvaluationSession[]).map(ensureSessionShape)
-          : [],
+        Array.from(sessionsById.values()).sort((a, b) =>
+          b.updatedAt.localeCompare(a.updatedAt),
+        ),
       );
-      setSession(savedDraft ? ensureSessionShape(JSON.parse(savedDraft)) : createSession());
+      setSession(
+        currentDraft && sessionHasData(currentDraft)
+          ? currentDraft
+          : newlyRecovered[0] || recoveredDrafts[0] || currentDraft || createSession(),
+      );
       setScorebookOverrides(
-        savedScorebook ? (JSON.parse(savedScorebook) as Record<string, ScorebookOverride>) : {},
+        isRecord(parsedScorebook)
+          ? (parsedScorebook as Record<string, ScorebookOverride>)
+          : {},
       );
       setAdminPasscodeExists(Boolean(localStorage.getItem(ADMIN_KEY)));
+      if (newlyRecovered.length > 0) {
+        setStatus(
+          `Recovered ${newlyRecovered.length} older draft${
+            newlyRecovered.length > 1 ? "s" : ""
+          }. Check Admin saved records.`,
+        );
+      }
       setHydrated(true);
     });
 
@@ -889,13 +981,33 @@ export function TriageApp() {
   }, []);
 
   useEffect(() => {
-    const updateOnlineState = () => setOnline(navigator.onLine);
+    let cancelled = false;
+    const verifyOnlineState = async () => {
+      try {
+        const response = await fetch(`/manifest.webmanifest?live=${Date.now()}`, {
+          cache: "no-store",
+        });
+        if (!cancelled) {
+          setOnline(response.ok);
+        }
+      } catch {
+        if (!cancelled) {
+          setOnline(false);
+        }
+      }
+    };
+    const updateOnlineState = () => {
+      void verifyOnlineState();
+    };
 
     updateOnlineState();
+    const interval = window.setInterval(updateOnlineState, 30000);
     window.addEventListener("online", updateOnlineState);
     window.addEventListener("offline", updateOnlineState);
 
     return () => {
+      cancelled = true;
+      window.clearInterval(interval);
       window.removeEventListener("online", updateOnlineState);
       window.removeEventListener("offline", updateOnlineState);
     };
@@ -1577,7 +1689,7 @@ export function TriageApp() {
             ) : (
               <WifiOff size={16} aria-hidden="true" />
             )}
-            {online ? (offlineReady ? "Offline ready" : "Online") : "Offline mode"}
+            {online ? (offlineReady ? "Live online" : "Online") : "Offline mode"}
           </span>
           {installPrompt ? (
             <button className="ghost-button" type="button" onClick={installApp}>
@@ -1970,12 +2082,13 @@ export function TriageApp() {
                     <details
                       className="victim-group"
                       key={`${dayConfig.key}-${activeVictimGroup}-${group.key}`}
-                      onToggle={(event) =>
+                      onToggle={(event) => {
+                        const isOpen = event.currentTarget.open;
                         setOpenVictimGroups((current) => ({
                           ...current,
-                          [groupStateKey]: event.currentTarget.open,
-                        }))
-                      }
+                          [groupStateKey]: isOpen,
+                        }));
+                      }}
                       open={groupOpen}
                     >
                       <summary>
