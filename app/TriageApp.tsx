@@ -1076,53 +1076,71 @@ function MciTriageLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? "mci-logo compact" : "mci-logo"} aria-hidden="true">
       <svg
-        className="mci-logo-mark"
+        className="mci-logo-mark triage-tag-emblem"
         viewBox="0 0 512 512"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         focusable="false"
       >
-        <rect x="24" y="24" width="464" height="464" rx="104" fill="#08734f" />
+        <rect x="24" y="24" width="464" height="464" rx="108" fill="#075f46" />
         <path
-          d="M95 389C168 429 275 437 391 378"
-          stroke="#7ee7b7"
-          strokeOpacity="0.22"
-          strokeWidth="32"
-          strokeLinecap="round"
-        />
-        <path
-          d="M87 136C150 89 252 67 407 128"
-          stroke="#dcfce7"
+          d="M78 146C151 95 261 70 425 119"
+          stroke="#bbf7d0"
           strokeOpacity="0.18"
-          strokeWidth="28"
+          strokeWidth="30"
           strokeLinecap="round"
         />
-        <rect x="116" y="92" width="280" height="324" rx="54" fill="#f8fffb" />
-        <rect x="186" y="70" width="140" height="64" rx="28" fill="#d1fae5" />
-        <rect x="213" y="94" width="86" height="14" rx="7" fill="#047857" />
+        <path
+          d="M84 384C166 431 292 445 425 363"
+          stroke="#6ee7b7"
+          strokeOpacity="0.18"
+          strokeWidth="34"
+          strokeLinecap="round"
+        />
+        <path
+          d="M122 88h199c24 0 47 10 64 27l78 78c24 24 24 62 0 86L301 441c-24 24-62 24-86 0L79 305c-15-15-23-35-23-56v-83c0-43 23-78 66-78Z"
+          fill="#f8fffb"
+        />
+        <circle cx="143" cy="169" r="28" fill="#064e3b" />
+        <circle cx="143" cy="169" r="12" fill="#bbf7d0" />
+        <rect x="323" y="120" width="72" height="36" rx="18" fill="#d1fae5" />
         <text
-          x="256"
-          y="185"
+          x="359"
+          y="145"
           textAnchor="middle"
           fontFamily="Manrope, Segoe UI, Arial, sans-serif"
-          fontSize="62"
+          fontSize="21"
           fontWeight="900"
-          letterSpacing="8"
+          letterSpacing="2"
+          fill="#047857"
+        >
+          EV
+        </text>
+        <text
+          x="257"
+          y="221"
+          textAnchor="middle"
+          fontFamily="Manrope, Segoe UI, Arial, sans-serif"
+          fontSize="76"
+          fontWeight="950"
+          letterSpacing="7"
           fill="#064e3b"
         >
           MCI
         </text>
         <path
-          d="M174 256l52 54 112-130"
+          d="M132 286h55l24-61 44 120 38-91h82"
           stroke="#047857"
-          strokeWidth="32"
+          strokeWidth="25"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <rect x="154" y="338" width="45" height="42" rx="14" fill="#dc2626" />
-        <rect x="211" y="338" width="45" height="42" rx="14" fill="#facc15" />
-        <rect x="268" y="338" width="45" height="42" rx="14" fill="#16a34a" />
-        <rect x="325" y="338" width="45" height="42" rx="14" fill="#0f172a" />
+        <g transform="rotate(-5 257 362)">
+          <rect x="122" y="350" width="61" height="46" rx="17" fill="#dc2626" />
+          <rect x="194" y="350" width="61" height="46" rx="17" fill="#facc15" />
+          <rect x="266" y="350" width="61" height="46" rx="17" fill="#16a34a" />
+          <rect x="338" y="350" width="61" height="46" rx="17" fill="#0f172a" />
+        </g>
       </svg>
       <span className="mci-logo-type">
         <strong>MCI Triage</strong>
