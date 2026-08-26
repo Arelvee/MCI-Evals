@@ -88,6 +88,12 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /method-tabs/);
   assert.match(app, /victim-range-menu/);
   assert.match(app, /victim-groups/);
+  assert.match(app, /Quick Victim Scoring/);
+  assert.match(app, /No-scroll scoring/);
+  assert.match(app, /quick-victim-chip/);
+  assert.match(app, /findVictimByLookup/);
+  assert.match(app, /victimCardDomId/);
+  assert.match(app, /Open Details/);
   assert.match(app, /tagged/);
   assert.match(app, /workspace-layout/);
   assert.match(app, /control-panel/);
@@ -131,7 +137,7 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v19"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v20"/);
   assert.match(serviceWorker, /\/brand\/upm-drrmh-logo\.png/);
   assert.match(serviceWorker, /isApiRequest/);
   assert.match(serviceWorker, /!isApiRequest\(request\)/);

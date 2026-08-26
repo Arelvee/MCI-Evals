@@ -18,6 +18,7 @@ import {
   RefreshCw,
   RotateCcw,
   Save,
+  Search,
   ShieldCheck,
   Square,
   TimerReset,
@@ -937,6 +938,33 @@ function chunkVictims(victims: VictimRecord[], size = 5): VictimGroup[] {
   return groups;
 }
 
+function victimPrefix(config: DayConfig) {
+  return config.victims[0]?.id.match(/^[A-Z]+/)?.[0] ?? "";
+}
+
+function findVictimByLookup(value: string, config: DayConfig) {
+  const cleaned = value.trim().toUpperCase().replace(/\s+/g, "");
+  if (!cleaned) {
+    return null;
+  }
+
+  const exact = config.victims.find((victim) => victim.id === cleaned);
+  if (exact) {
+    return exact;
+  }
+
+  if (/^\d+$/.test(cleaned)) {
+    const prefixedId = `${victimPrefix(config)}${Number(cleaned)}`;
+    return config.victims.find((victim) => victim.id === prefixedId) ?? null;
+  }
+
+  return null;
+}
+
+function victimCardDomId(day: DayKey, victimId: string) {
+  return `victim-card-${day}-${victimId}`.toLowerCase();
+}
+
 function scoreValue(value: ScoreValue | undefined) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -1182,6 +1210,18 @@ export function TriageApp() {
   const [activeMethodFilter, setActiveMethodFilter] = useState<Method | "ALL">("ALL");
   const [activeVictimGroup, setActiveVictimGroup] = useState<number | "ALL">("ALL");
   const [openVictimGroups, setOpenVictimGroups] = useState<Record<string, boolean>>({});
+  const [quickVictimInputs, setQuickVictimInputs] = useState<Record<DayKey, string>>(
+    () => ({
+      day1: DAY_CONFIGS.day1.victims[0]?.id ?? "",
+      day2: DAY_CONFIGS.day2.victims[0]?.id ?? "",
+      day3: DAY_CONFIGS.day3.victims[0]?.id ?? "",
+    }),
+  );
+  const [quickVictimIds, setQuickVictimIds] = useState<Record<DayKey, string>>(() => ({
+    day1: DAY_CONFIGS.day1.victims[0]?.id ?? "",
+    day2: DAY_CONFIGS.day2.victims[0]?.id ?? "",
+    day3: DAY_CONFIGS.day3.victims[0]?.id ?? "",
+  }));
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
@@ -1438,6 +1478,22 @@ export function TriageApp() {
       ? dayConfig.methods
       : [activeMethodFilter];
   const victimGroups = useMemo(() => chunkVictims(getDayConfig(dayKey).victims), [dayKey]);
+  const defaultQuickVictimId = dayConfig.victims[0]?.id ?? "";
+  const quickVictimInput = quickVictimInputs[dayKey] ?? defaultQuickVictimId;
+  const quickVictimId = quickVictimIds[dayKey] ?? defaultQuickVictimId;
+  const quickVictim =
+    dayConfig.victims.find((victim) => victim.id === quickVictimId) ??
+    dayConfig.victims[0] ??
+    null;
+  const quickVictimMatch = findVictimByLookup(quickVictimInput, dayConfig);
+  const quickVictimInputMiss =
+    quickVictimInput.trim().length > 0 && quickVictimMatch === null;
+  const quickVictimAnsweredCount =
+    activeMember && quickVictim
+      ? dayConfig.methods.filter((method) => activeMember[method].answers[quickVictim.id])
+          .length
+      : 0;
+
   const visibleVictimGroups =
     activeVictimGroup === "ALL"
       ? victimGroups
@@ -1767,6 +1823,40 @@ export function TriageApp() {
         answers: { ...member[method].answers, [victimId]: answer },
       },
     }));
+  }
+
+  function selectQuickVictim(victimId: string) {
+    setQuickVictimIds((current) => ({ ...current, [dayKey]: victimId }));
+    setQuickVictimInputs((current) => ({ ...current, [dayKey]: victimId }));
+  }
+
+  function handleQuickVictimLookup(value: string) {
+    setQuickVictimInputs((current) => ({ ...current, [dayKey]: value.toUpperCase() }));
+    const match = findVictimByLookup(value, dayConfig);
+    if (match) {
+      setQuickVictimIds((current) => ({ ...current, [dayKey]: match.id }));
+    }
+  }
+
+  function openQuickVictimDetails(victimId: string) {
+    const groupIndex = victimGroups.findIndex((group) =>
+      group.victims.some((victim) => victim.id === victimId),
+    );
+    const group = groupIndex >= 0 ? victimGroups[groupIndex] : null;
+
+    if (group) {
+      setActiveVictimGroup(groupIndex);
+      setOpenVictimGroups((current) => ({
+        ...current,
+        [`${dayConfig.key}:${group.key}`]: true,
+      }));
+    }
+
+    window.setTimeout(() => {
+      document
+        .getElementById(victimCardDomId(dayConfig.key, victimId))
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 
   function toggleTimer(memberId: string, method: Method) {
@@ -2576,6 +2666,147 @@ export function TriageApp() {
                 ))}
               </section>
 
+              <section className="quick-victim-panel" aria-label="Quick Victim Scoring">
+                <div className="quick-victim-toolbar">
+                  <div>
+                    <p className="eyebrow">No-scroll scoring</p>
+                    <h3>Quick Victim Scoring</h3>
+                    <p>{`Type ${victimPrefix(dayConfig)}7 or 7, then tag the active victim.`}</p>
+                  </div>
+                  <label className="quick-victim-search">
+                    Victim ID
+                    <span className="quick-victim-input">
+                      <Search size={16} aria-hidden="true" />
+                      <input
+                        value={quickVictimInput}
+                        onChange={(event) => handleQuickVictimLookup(event.target.value)}
+                        placeholder={`${victimPrefix(dayConfig)}1`}
+                        aria-invalid={quickVictimInputMiss}
+                      />
+                    </span>
+                  </label>
+                </div>
+
+                <div className="quick-victim-chips" aria-label="Victim quick jump">
+                  {dayConfig.victims.map((victim) => {
+                    const answeredMethods = dayConfig.methods.filter(
+                      (method) => activeMember[method].answers[victim.id],
+                    );
+                    const statusClass =
+                      answeredMethods.length === 0
+                        ? "empty"
+                        : answeredMethods.length === dayConfig.methods.length
+                          ? "complete"
+                          : "partial";
+                    return (
+                      <button
+                        className={`quick-victim-chip ${statusClass}${
+                          quickVictim?.id === victim.id ? " active" : ""
+                        }`}
+                        type="button"
+                        key={victim.id}
+                        aria-pressed={quickVictim?.id === victim.id}
+                        onClick={() => selectQuickVictim(victim.id)}
+                      >
+                        <span>{victim.id}</span>
+                        <small>
+                          {answeredMethods.length}/{dayConfig.methods.length}
+                        </small>
+                        <span className="quick-victim-dots" aria-hidden="true">
+                          {dayConfig.methods.map((method) => {
+                            const answer = activeMember[method].answers[victim.id];
+                            return <i className={answer ? tagClass(answer) : ""} key={method} />;
+                          })}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {quickVictim ? (
+                  <article className="quick-focus-card">
+                    <header className="quick-focus-head">
+                      <div>
+                        <span>Active victim</span>
+                        <strong>{quickVictim.id}</strong>
+                      </div>
+                      <em>
+                        {quickVictimAnsweredCount}/{dayConfig.methods.length} tagged
+                      </em>
+                      <button
+                        className="ghost-button compact-button"
+                        type="button"
+                        onClick={() => openQuickVictimDetails(quickVictim.id)}
+                      >
+                        Open Details
+                      </button>
+                    </header>
+                    <div className="quick-focus-methods">
+                      {dayConfig.methods.map((method) => {
+                        const selected = activeMember[method].answers[quickVictim.id];
+                        const correctTags = quickVictim.correct[method]?.tags ?? [];
+                        const isCorrect = selected && correctTags.includes(selected);
+                        return (
+                          <div className="quick-focus-method" key={method}>
+                            <div className="answer-heading">
+                              <span>{method}</span>
+                              <strong className={isCorrect ? "correct" : selected ? "wrong" : ""}>
+                                {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
+                              </strong>
+                            </div>
+                            <div className="quick-correct-tags">
+                              <span>Correct</span>
+                              {correctTags.map((tag) => (
+                                <b className={`tag-chip ${tagClass(tag)}`} key={tag}>
+                                  {TAG_LABELS[tag]}
+                                </b>
+                              ))}
+                            </div>
+                            {quickVictim.correct[method]?.note ? (
+                              <small>{quickVictim.correct[method]?.note}</small>
+                            ) : null}
+                            <div className="tag-options">
+                              {TAGS.map((tag) => (
+                                <button
+                                  key={tag}
+                                  className={`tag-option ${tagClass(tag)}${
+                                    selected === tag ? " selected" : ""
+                                  }`}
+                                  type="button"
+                                  aria-pressed={selected === tag}
+                                  aria-label={`${method} ${quickVictim.id} ${TAG_LABELS[tag]}`}
+                                  onClick={() =>
+                                    setAnswer(activeMember.id, method, quickVictim.id, tag)
+                                  }
+                                >
+                                  {TAG_LABELS[tag]}
+                                </button>
+                              ))}
+                              <button
+                                className="clear-tag"
+                                type="button"
+                                onClick={() =>
+                                  setAnswer(activeMember.id, method, quickVictim.id, "")
+                                }
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {quickVictimInputMiss ? (
+                      <p className="quick-victim-miss">
+                        {`No matching victim. Try ${victimPrefix(dayConfig)}1 to ${
+                          dayConfig.victims[dayConfig.victims.length - 1]?.id
+                        }.`}
+                      </p>
+                    ) : null}
+                  </article>
+                ) : null}
+              </section>
+
               <div className="timer-grid">
                 {dayConfig.methods.map((method) => {
                   const timer = activeMember[method].timer;
@@ -2735,6 +2966,7 @@ export function TriageApp() {
                       {group.victims.map((victim) => (
                         <article
                           className={`victim-card methods-${visibleMethods.length}`}
+                          id={victimCardDomId(dayConfig.key, victim.id)}
                           key={victim.id}
                         >
                           <div className="victim-key">

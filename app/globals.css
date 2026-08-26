@@ -354,7 +354,7 @@
   }
 
   .score-header {
-    @apply sticky top-2 z-10 mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200/90 bg-white/95 p-3 shadow-sm shadow-slate-900/5 backdrop-blur sm:flex-row sm:items-center;
+    @apply mb-3 flex flex-col justify-between gap-2 rounded-lg border border-stone-200/90 bg-white/95 p-3 shadow-sm shadow-slate-900/5 backdrop-blur sm:flex-row sm:items-center;
   }
 
   .score-totals {
@@ -396,6 +396,140 @@
 
   .day-score-summary em {
     @apply text-[0.68rem] font-extrabold not-italic text-emerald-700;
+  }
+
+  .quick-victim-panel {
+    @apply sticky top-2 z-20 mb-3 grid gap-2 rounded-lg border border-emerald-200 bg-white/95 p-2.5 shadow-lg shadow-emerald-950/10 backdrop-blur;
+  }
+
+  .quick-victim-toolbar {
+    @apply grid gap-2 md:grid-cols-[minmax(0,1fr)_220px] md:items-end;
+  }
+
+  .quick-victim-toolbar p:not(.eyebrow) {
+    @apply mb-0 text-sm font-semibold leading-relaxed text-stone-600;
+  }
+
+  .quick-victim-search {
+    @apply gap-1;
+  }
+
+  .quick-victim-input {
+    @apply flex min-h-10 items-center gap-2 rounded-md border border-stone-200 bg-white px-2 text-emerald-700 shadow-sm;
+  }
+
+  .quick-victim-input input {
+    @apply min-h-8 border-0 bg-transparent px-0 py-0 text-base font-black uppercase text-slate-950 shadow-none focus:ring-0;
+  }
+
+  .quick-victim-input input:focus {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .quick-victim-chips {
+    @apply grid max-h-32 grid-cols-[repeat(auto-fill,minmax(58px,1fr))] gap-1.5 overflow-y-auto pr-1;
+  }
+
+  .quick-victim-chip {
+    @apply grid min-h-12 gap-1 rounded-md border border-stone-200 bg-stone-50 px-2 py-1.5 text-left shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100;
+  }
+
+  .quick-victim-chip > span:first-child {
+    @apply text-sm font-black text-slate-800;
+  }
+
+  .quick-victim-chip small {
+    @apply text-[0.62rem] font-black uppercase text-stone-500;
+  }
+
+  .quick-victim-chip.partial {
+    @apply border-amber-300 bg-amber-50;
+  }
+
+  .quick-victim-chip.complete {
+    @apply border-emerald-300 bg-emerald-50;
+  }
+
+  .quick-victim-chip.active {
+    @apply border-emerald-700 bg-emerald-700 text-white ring-2 ring-emerald-200;
+  }
+
+  .quick-victim-chip.active > span:first-child,
+  .quick-victim-chip.active small {
+    @apply text-white;
+  }
+
+  .quick-victim-dots {
+    @apply flex gap-1;
+  }
+
+  .quick-victim-dots i {
+    @apply h-1.5 w-1.5 rounded-full bg-stone-300;
+  }
+
+  .quick-victim-dots i.tag-green {
+    @apply bg-emerald-500;
+  }
+
+  .quick-victim-dots i.tag-yellow {
+    @apply bg-amber-400;
+  }
+
+  .quick-victim-dots i.tag-red {
+    @apply bg-red-500;
+  }
+
+  .quick-victim-dots i.tag-black {
+    @apply bg-slate-950;
+  }
+
+  .quick-focus-card {
+    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-slate-900/5;
+  }
+
+  .quick-focus-head {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-2;
+  }
+
+  .quick-focus-head div {
+    @apply grid leading-none;
+  }
+
+  .quick-focus-head span {
+    @apply text-[0.68rem] font-black uppercase tracking-[0.06em] text-emerald-700;
+  }
+
+  .quick-focus-head strong {
+    @apply text-2xl font-black text-slate-950;
+  }
+
+  .quick-focus-head em {
+    @apply rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-black not-italic text-emerald-800;
+  }
+
+  .quick-focus-methods {
+    @apply grid gap-2 lg:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .quick-focus-method {
+    @apply grid content-start gap-2 rounded-md border border-stone-100 bg-stone-50/70 p-2;
+  }
+
+  .quick-focus-method small {
+    @apply text-[0.7rem] font-semibold leading-snug text-stone-500;
+  }
+
+  .quick-correct-tags {
+    @apply flex flex-wrap items-center gap-1.5;
+  }
+
+  .quick-correct-tags span {
+    @apply text-[0.64rem] font-black uppercase text-stone-500;
+  }
+
+  .quick-victim-miss {
+    @apply mb-0 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-900;
   }
 
   .timer-grid {
@@ -503,7 +637,7 @@
   }
 
   .scoring-menu {
-    @apply sticky top-[76px] z-10 mb-3 grid gap-2 rounded-lg border border-stone-200 bg-white/95 p-2.5 shadow-sm shadow-slate-900/5 backdrop-blur;
+    @apply mb-3 grid gap-2 rounded-lg border border-stone-200 bg-white/95 p-2.5 shadow-sm shadow-slate-900/5 backdrop-blur;
   }
 
   .scoring-menu > div {
@@ -1239,6 +1373,14 @@
 
   .score-preset-button {
     @apply px-1.5;
+  }
+
+  .quick-victim-panel {
+    @apply top-1;
+  }
+
+  .quick-victim-chips {
+    @apply max-h-24;
   }
 
   .timer-actions,
