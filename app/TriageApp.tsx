@@ -1072,6 +1072,13 @@ function appIsStandalone() {
   );
 }
 
+function deviceUsesManualPwaInstall() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
 function MciTriageLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? "mci-logo compact" : "mci-logo"} aria-hidden="true">
@@ -1179,6 +1186,7 @@ export function TriageApp() {
     null,
   );
   const [installBannerOpen, setInstallBannerOpen] = useState(true);
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const [standalone, setStandalone] = useState(false);
   const [online, setOnline] = useState(true);
   const [offlineReady, setOfflineReady] = useState(false);
@@ -1264,6 +1272,7 @@ export function TriageApp() {
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
       setInstallBannerOpen(true);
+      setInstallGuideOpen(false);
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
@@ -1277,6 +1286,7 @@ export function TriageApp() {
       setStandalone(true);
       setInstallPrompt(null);
       setInstallBannerOpen(false);
+      setInstallGuideOpen(false);
     };
 
     updateStandalone();
@@ -2238,20 +2248,33 @@ export function TriageApp() {
 
   async function installApp() {
     if (!installPrompt) {
-      setStatus("Use the browser install menu, or Share > Add to Home Screen on iPhone/iPad.");
+      setInstallBannerOpen(true);
+      setInstallGuideOpen(true);
+      setStatus(
+        deviceUsesManualPwaInstall()
+          ? "iPhone/iPad requires one manual browser step after tapping Install."
+          : "This browser has not opened the native install prompt yet.",
+      );
       return;
     }
 
-    await installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
-    setInstallPrompt(null);
-    if (choice.outcome === "accepted") {
-      setInstallBannerOpen(false);
-      setStatus("App installation started.");
-      return;
-    }
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      setInstallPrompt(null);
+      if (choice.outcome === "accepted") {
+        setInstallBannerOpen(false);
+        setInstallGuideOpen(false);
+        setStatus("App installation started.");
+        return;
+      }
 
-    setStatus("Install prompt dismissed. You can still install from the browser menu.");
+      setStatus("Install prompt dismissed. You can still tap Install again later.");
+    } catch {
+      setInstallPrompt(null);
+      setInstallGuideOpen(true);
+      setStatus("This browser blocked one-tap install. Follow the quick install guide.");
+    }
   }
 
   if (!hydrated || !session || !activeMember || !activeStats) {
@@ -2282,8 +2305,15 @@ export function TriageApp() {
             )}
             {online ? (offlineReady ? "Live online" : "Online") : "Offline mode"}
           </span>
-          {installPrompt ? (
-            <button className="ghost-button" type="button" onClick={installApp}>
+          {!standalone ? (
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => {
+                setInstallBannerOpen(true);
+                void installApp();
+              }}
+            >
               <Download size={18} aria-hidden="true" />
               Install
             </button>
@@ -2310,19 +2340,24 @@ export function TriageApp() {
             </div>
           </div>
           <p>
-            Save MCI Triage to this device for faster access and offline score-sheet use.
+            Tap Install for the native app prompt on supported devices.
           </p>
           <div className="install-actions">
             <button className="primary-button" type="button" onClick={installApp}>
               <Download size={18} aria-hidden="true" />
-              {installPrompt ? "Install App" : "How to Install"}
+              Install App
             </button>
-            {!installPrompt ? (
-              <span className="install-tip">
-                iPhone/iPad: Share, then Add to Home Screen.
-              </span>
-            ) : null}
+            <span className="install-tip">
+              Works offline after first load.
+            </span>
           </div>
+          {installGuideOpen ? (
+            <div className="install-guide" role="status">
+              <strong>Manual step needed</strong>
+              <span>Android/Desktop: open the browser menu, then choose Install app.</span>
+              <span>iPhone/iPad: use Share, then Add to Home Screen.</span>
+            </div>
+          ) : null}
         </aside>
       ) : null}
 

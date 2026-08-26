@@ -226,6 +226,14 @@
     @apply rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-xs font-extrabold text-emerald-800;
   }
 
+  .install-guide {
+    @apply grid gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-900;
+  }
+
+  .install-guide strong {
+    @apply text-[0.72rem] font-black uppercase tracking-[0.06em] text-amber-800;
+  }
+
   .day-pill {
     @apply flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-slate-700 shadow-sm shadow-slate-900/5 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:bg-stone-100 disabled:text-stone-400 disabled:shadow-none lg:justify-start lg:px-3;
   }
