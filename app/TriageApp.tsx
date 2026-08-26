@@ -134,12 +134,6 @@ type DayConfig = {
   victims: VictimRecord[];
 };
 
-type VictimGroup = {
-  key: string;
-  label: string;
-  victims: VictimRecord[];
-};
-
 const ALL_METHODS: Method[] = ["START", "SIEVE", "SAVE", "SORT"];
 const TAGS: Tag[] = ["GREEN", "YELLOW", "RED", "BLACK"];
 const SESSION_KEY = "mci-triage-sessions-v1";
@@ -923,21 +917,6 @@ function average(values: number[]) {
   return values.reduce((total, value) => total + value, 0) / values.length;
 }
 
-function chunkVictims(victims: VictimRecord[], size = 5): VictimGroup[] {
-  const groups: VictimGroup[] = [];
-  for (let index = 0; index < victims.length; index += size) {
-    const group = victims.slice(index, index + size);
-    const first = group[0]?.id ?? "";
-    const last = group[group.length - 1]?.id ?? "";
-    groups.push({
-      key: `${first}-${last}`,
-      label: first === last ? first : `${first}-${last}`,
-      victims: group,
-    });
-  }
-  return groups;
-}
-
 function victimPrefix(config: DayConfig) {
   return config.victims[0]?.id.match(/^[A-Z]+/)?.[0] ?? "";
 }
@@ -959,10 +938,6 @@ function findVictimByLookup(value: string, config: DayConfig) {
   }
 
   return null;
-}
-
-function victimCardDomId(day: DayKey, victimId: string) {
-  return `victim-card-${day}-${victimId}`.toLowerCase();
 }
 
 function scoreValue(value: ScoreValue | undefined) {
@@ -1207,9 +1182,6 @@ export function TriageApp() {
   const [scorebookOverrides, setScorebookOverrides] = useState<
     Record<string, ScorebookOverride>
   >({});
-  const [activeMethodFilter, setActiveMethodFilter] = useState<Method | "ALL">("ALL");
-  const [activeVictimGroup, setActiveVictimGroup] = useState<number | "ALL">("ALL");
-  const [openVictimGroups, setOpenVictimGroups] = useState<Record<string, boolean>>({});
   const [quickVictimInputs, setQuickVictimInputs] = useState<Record<DayKey, string>>(
     () => ({
       day1: DAY_CONFIGS.day1.victims[0]?.id ?? "",
@@ -1473,11 +1445,6 @@ export function TriageApp() {
   const dayKey = session?.day ?? "day1";
   const dayConfig = getDayConfig(dayKey);
   const activeMember = session?.members[activeMemberIndex] ?? null;
-  const visibleMethods =
-    activeMethodFilter === "ALL" || !dayConfig.methods.includes(activeMethodFilter)
-      ? dayConfig.methods
-      : [activeMethodFilter];
-  const victimGroups = useMemo(() => chunkVictims(getDayConfig(dayKey).victims), [dayKey]);
   const defaultQuickVictimId = dayConfig.victims[0]?.id ?? "";
   const quickVictimInput = quickVictimInputs[dayKey] ?? defaultQuickVictimId;
   const quickVictimId = quickVictimIds[dayKey] ?? defaultQuickVictimId;
@@ -1493,13 +1460,6 @@ export function TriageApp() {
       ? dayConfig.methods.filter((method) => activeMember[method].answers[quickVictim.id])
           .length
       : 0;
-
-  const visibleVictimGroups =
-    activeVictimGroup === "ALL"
-      ? victimGroups
-      : victimGroups[activeVictimGroup]
-        ? [victimGroups[activeVictimGroup]]
-        : victimGroups;
   const activeStats = useMemo(() => {
     if (!activeMember) {
       return null;
@@ -1838,27 +1798,6 @@ export function TriageApp() {
     }
   }
 
-  function openQuickVictimDetails(victimId: string) {
-    const groupIndex = victimGroups.findIndex((group) =>
-      group.victims.some((victim) => victim.id === victimId),
-    );
-    const group = groupIndex >= 0 ? victimGroups[groupIndex] : null;
-
-    if (group) {
-      setActiveVictimGroup(groupIndex);
-      setOpenVictimGroups((current) => ({
-        ...current,
-        [`${dayConfig.key}:${group.key}`]: true,
-      }));
-    }
-
-    window.setTimeout(() => {
-      document
-        .getElementById(victimCardDomId(dayConfig.key, victimId))
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 50);
-  }
-
   function toggleTimer(memberId: string, method: Method) {
     updateMember(memberId, (member) => {
       const timer = member[method].timer;
@@ -1927,9 +1866,6 @@ export function TriageApp() {
   function switchDay(day: DayKey) {
     setSession((current) => createCleanSessionForDay(day, current));
     setActiveMemberIndex(0);
-    setActiveMethodFilter("ALL");
-    setActiveVictimGroup("ALL");
-    setOpenVictimGroups({});
     setStatus(`${getDayConfig(day).label} score sheet ready with 0 scores.`);
   }
 
@@ -2150,9 +2086,6 @@ export function TriageApp() {
 
     setSession(createSession(session?.day ?? "day1"));
     setActiveMemberIndex(0);
-    setActiveMethodFilter("ALL");
-    setActiveVictimGroup("ALL");
-    setOpenVictimGroups({});
     setStatus(`New ${dayConfig.label} sheet ready.`);
   }
 
@@ -2733,13 +2666,6 @@ export function TriageApp() {
                       <em>
                         {quickVictimAnsweredCount}/{dayConfig.methods.length} tagged
                       </em>
-                      <button
-                        className="ghost-button compact-button"
-                        type="button"
-                        onClick={() => openQuickVictimDetails(quickVictim.id)}
-                      >
-                        Open Details
-                      </button>
                     </header>
                     <div className="quick-focus-methods">
                       {dayConfig.methods.map((method) => {
@@ -2882,170 +2808,6 @@ export function TriageApp() {
                 })}
               </div>
 
-              <section className="scoring-menu" aria-label="Scoring menu">
-                <div>
-                  <span>Method</span>
-                  <div className="method-tabs" role="tablist" aria-label="Filter scoring method">
-                    <button
-                      className={activeMethodFilter === "ALL" ? "active" : ""}
-                      type="button"
-                      onClick={() => setActiveMethodFilter("ALL")}
-                    >
-                      All
-                    </button>
-                    {dayConfig.methods.map((method) => (
-                      <button
-                        className={activeMethodFilter === method ? "active" : ""}
-                        key={method}
-                        type="button"
-                        onClick={() => setActiveMethodFilter(method)}
-                      >
-                        {method}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <span>Victims</span>
-                  <div className="victim-range-menu" aria-label="Victim range menu">
-                    <button
-                      className={activeVictimGroup === "ALL" ? "active" : ""}
-                      type="button"
-                      onClick={() => setActiveVictimGroup("ALL")}
-                    >
-                      All
-                    </button>
-                    {victimGroups.map((group, index) => (
-                      <button
-                        className={activeVictimGroup === index ? "active" : ""}
-                        key={group.key}
-                        type="button"
-                        onClick={() => setActiveVictimGroup(index)}
-                      >
-                        {group.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              <div className="victim-groups">
-                {visibleVictimGroups.map((group, groupIndex) => {
-                  const groupStateKey = `${dayConfig.key}:${group.key}`;
-                  const groupOpen =
-                    openVictimGroups[groupStateKey] ??
-                    (activeVictimGroup !== "ALL" || groupIndex === 0);
-                  return (
-                    <details
-                      className="victim-group"
-                      key={`${dayConfig.key}-${activeVictimGroup}-${group.key}`}
-                      onToggle={(event) => {
-                        const isOpen = event.currentTarget.open;
-                        setOpenVictimGroups((current) => ({
-                          ...current,
-                          [groupStateKey]: isOpen,
-                        }));
-                      }}
-                      open={groupOpen}
-                    >
-                      <summary>
-                        <span>{group.label}</span>
-                        <strong>
-                          {group.victims.reduce(
-                            (total, victim) =>
-                              total +
-                              visibleMethods.filter(
-                                (method) => activeMember[method].answers[victim.id],
-                              ).length,
-                            0,
-                          )}
-                          /{group.victims.length * visibleMethods.length} tagged
-                        </strong>
-                      </summary>
-                      <div className="victim-list">
-                      {group.victims.map((victim) => (
-                        <article
-                          className={`victim-card methods-${visibleMethods.length}`}
-                          id={victimCardDomId(dayConfig.key, victim.id)}
-                          key={victim.id}
-                        >
-                          <div className="victim-key">
-                            <strong>{victim.id}</strong>
-                            <div>
-                              {visibleMethods.map((method) => (
-                                <span key={method}>
-                                  {method}{" "}
-                                  {(victim.correct[method]?.tags ?? []).map((tag) => (
-                                    <b className={`tag-chip ${tagClass(tag)}`} key={tag}>
-                                      {TAG_LABELS[tag]}
-                                    </b>
-                                  ))}
-                                </span>
-                              ))}
-                            </div>
-                            {visibleMethods.map((method) =>
-                              victim.correct[method]?.note ? (
-                                <small key={method}>
-                                  {`${method}: ${victim.correct[method]?.note}`}
-                                </small>
-                              ) : null,
-                            )}
-                          </div>
-
-                          <div className="answer-grid">
-                            {visibleMethods.map((method) => {
-                              const selected = activeMember[method].answers[victim.id];
-                              const isCorrect =
-                                selected &&
-                                (victim.correct[method]?.tags ?? []).includes(selected);
-                              return (
-                                <div className="answer-block" key={method}>
-                                  <div className="answer-heading">
-                                    <span>{method}</span>
-                                    <strong
-                                      className={isCorrect ? "correct" : selected ? "wrong" : ""}
-                                    >
-                                      {selected ? (isCorrect ? "Correct" : "Review") : "No tag"}
-                                    </strong>
-                                  </div>
-                                  <div className="tag-options">
-                                    {TAGS.map((tag) => (
-                                      <button
-                                        key={tag}
-                                        className={`tag-option ${tagClass(tag)}${
-                                          selected === tag ? " selected" : ""
-                                        }`}
-                                        type="button"
-                                        aria-pressed={selected === tag}
-                                        aria-label={`${method} ${victim.id} ${TAG_LABELS[tag]}`}
-                                        onClick={() =>
-                                          setAnswer(activeMember.id, method, victim.id, tag)
-                                        }
-                                      >
-                                        {TAG_LABELS[tag]}
-                                      </button>
-                                    ))}
-                                    <button
-                                      className="clear-tag"
-                                      type="button"
-                                      onClick={() =>
-                                        setAnswer(activeMember.id, method, victim.id, "")
-                                      }
-                                    >
-                                      Clear
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </article>
-                      ))}
-                      </div>
-                    </details>
-                  );
-                })}
-              </div>
               <div className="bottom-quick-actions" aria-label="Bottom score sheet actions">
                 <button className="primary-button" type="button" onClick={saveCurrent}>
                   <Save size={18} aria-hidden="true" />

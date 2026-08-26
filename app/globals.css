@@ -382,7 +382,7 @@
   }
 
   .day-score-summary span,
-  .scoring-menu > div > span {
+  .quick-correct-tags span {
     @apply text-xs font-black uppercase text-stone-500;
   }
 
@@ -428,7 +428,7 @@
   }
 
   .quick-victim-chips {
-    @apply grid max-h-32 grid-cols-[repeat(auto-fill,minmax(58px,1fr))] gap-1.5 overflow-y-auto pr-1;
+    @apply grid grid-cols-[repeat(auto-fill,minmax(58px,1fr))] gap-1.5;
   }
 
   .quick-victim-chip {
@@ -636,53 +636,6 @@
     @apply border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50;
   }
 
-  .scoring-menu {
-    @apply mb-3 grid gap-2 rounded-lg border border-stone-200 bg-white/95 p-2.5 shadow-sm shadow-slate-900/5 backdrop-blur;
-  }
-
-  .scoring-menu > div {
-    @apply grid gap-1.5;
-  }
-
-  .method-tabs,
-  .victim-range-menu {
-    @apply flex gap-1.5 overflow-x-auto pb-1;
-  }
-
-  .method-tabs button,
-  .victim-range-menu button {
-    @apply inline-flex min-h-8 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 px-3 text-xs font-black text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50;
-  }
-
-  .method-tabs button.active,
-  .victim-range-menu button.active {
-    @apply border-emerald-700 bg-emerald-700 text-white;
-  }
-
-  .victim-groups {
-    @apply grid gap-2;
-  }
-
-  .victim-group {
-    @apply overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm shadow-slate-900/5;
-  }
-
-  .victim-group summary {
-    @apply flex cursor-pointer list-none items-center justify-between gap-3 bg-stone-50 px-3 py-2 text-sm font-black text-slate-800;
-  }
-
-  .victim-group summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .victim-group summary strong {
-    @apply rounded-full bg-white px-2 py-1 text-[0.68rem] font-black text-emerald-700;
-  }
-
-  .victim-list {
-    @apply grid gap-2 p-2;
-  }
-
   .bottom-quick-actions {
     @apply sticky bottom-2 z-20 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-emerald-100 bg-white/95 p-2.5 shadow-lg shadow-emerald-950/10 backdrop-blur sm:grid-cols-3;
   }
@@ -691,49 +644,8 @@
     @apply col-span-2 sm:col-span-1;
   }
 
-  .victim-card {
-    @apply grid gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-sm shadow-slate-900/5 transition hover:border-emerald-300 md:grid-cols-[132px_minmax(0,1fr)] xl:grid-cols-[150px_minmax(0,1fr)];
-  }
-
-  .victim-key {
-    @apply grid content-start gap-1.5 border-b border-stone-100 pb-2 md:border-b-0 md:border-r md:pb-0 md:pr-2;
-  }
-
-  .victim-key > strong {
-    @apply inline-flex h-10 w-full items-center justify-center rounded-md text-lg font-black text-white shadow-sm;
-    background: linear-gradient(135deg, #111827, #0d7a4d);
-  }
-
-  .victim-key div {
-    @apply flex flex-wrap gap-1.5;
-  }
-
-  .victim-key span {
-    @apply inline-flex flex-wrap items-center gap-1 text-[0.68rem] font-extrabold leading-relaxed text-stone-600;
-  }
-
-  .victim-key small {
-    @apply text-[0.7rem] font-semibold leading-snug text-stone-500;
-  }
-
   .tag-chip {
     @apply inline-flex rounded-full border px-2 py-1 text-[0.62rem] font-black leading-none shadow-sm;
-  }
-
-  .answer-grid {
-    @apply grid gap-2 md:grid-cols-2;
-  }
-
-  .victim-card.methods-4 .answer-grid {
-    @apply xl:grid-cols-4;
-  }
-
-  .answer-block {
-    @apply grid content-start gap-2 rounded-md border border-stone-100 bg-stone-50/50 p-2 md:border-stone-100;
-  }
-
-  .answer-block:last-child {
-    @apply border-stone-100;
   }
 
   .answer-heading {
@@ -1377,10 +1289,6 @@
 
   .quick-victim-panel {
     @apply top-1;
-  }
-
-  .quick-victim-chips {
-    @apply max-h-24;
   }
 
   .timer-actions,
