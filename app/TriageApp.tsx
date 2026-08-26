@@ -1075,16 +1075,58 @@ function appIsStandalone() {
 function MciTriageLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? "mci-logo compact" : "mci-logo"} aria-hidden="true">
-      <span className="mci-logo-mark">
-        <span className="mci-logo-cross" />
-        <span className="mci-logo-dot green" />
-        <span className="mci-logo-dot yellow" />
-        <span className="mci-logo-dot red" />
-        <span className="mci-logo-dot black" />
-      </span>
+      <svg
+        className="mci-logo-mark"
+        viewBox="0 0 512 512"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        focusable="false"
+      >
+        <rect x="24" y="24" width="464" height="464" rx="104" fill="#08734f" />
+        <path
+          d="M95 389C168 429 275 437 391 378"
+          stroke="#7ee7b7"
+          strokeOpacity="0.22"
+          strokeWidth="32"
+          strokeLinecap="round"
+        />
+        <path
+          d="M87 136C150 89 252 67 407 128"
+          stroke="#dcfce7"
+          strokeOpacity="0.18"
+          strokeWidth="28"
+          strokeLinecap="round"
+        />
+        <rect x="116" y="92" width="280" height="324" rx="54" fill="#f8fffb" />
+        <rect x="186" y="70" width="140" height="64" rx="28" fill="#d1fae5" />
+        <rect x="213" y="94" width="86" height="14" rx="7" fill="#047857" />
+        <text
+          x="256"
+          y="185"
+          textAnchor="middle"
+          fontFamily="Manrope, Segoe UI, Arial, sans-serif"
+          fontSize="62"
+          fontWeight="900"
+          letterSpacing="8"
+          fill="#064e3b"
+        >
+          MCI
+        </text>
+        <path
+          d="M174 256l52 54 112-130"
+          stroke="#047857"
+          strokeWidth="32"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect x="154" y="338" width="45" height="42" rx="14" fill="#dc2626" />
+        <rect x="211" y="338" width="45" height="42" rx="14" fill="#facc15" />
+        <rect x="268" y="338" width="45" height="42" rx="14" fill="#16a34a" />
+        <rect x="325" y="338" width="45" height="42" rx="14" fill="#0f172a" />
+      </svg>
       <span className="mci-logo-type">
-        <strong>MCI</strong>
-        <small>Triage</small>
+        <strong>MCI Triage</strong>
+        <small>Evaluation Tool</small>
       </span>
     </div>
   );
