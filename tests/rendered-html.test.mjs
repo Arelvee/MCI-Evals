@@ -97,6 +97,7 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(app, /Install this app/);
   assert.match(app, /MciTriageLogo/);
   assert.match(app, /triage-tag-emblem/);
+  assert.match(app, /mci-logo-partner-seal/);
   assert.match(app, /Evaluation Tool/);
   assert.match(app, /Install App/);
   assert.match(app, /Live online/);
@@ -128,7 +129,8 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v17"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v18"/);
+  assert.match(serviceWorker, /\/brand\/upm-drrmh-logo\.png/);
   assert.match(serviceWorker, /isApiRequest/);
   assert.match(serviceWorker, /!isApiRequest\(request\)/);
   assert.match(serviceWorker, /precacheAppShell/);

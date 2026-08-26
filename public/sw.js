@@ -1,8 +1,9 @@
-const CACHE_NAME = "mci-triage-pwa-v17";
+const CACHE_NAME = "mci-triage-pwa-v18";
 const APP_SHELL_ASSETS = [
   "/",
   "/manifest.webmanifest",
   "/favicon.svg",
+  "/brand/upm-drrmh-logo.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];

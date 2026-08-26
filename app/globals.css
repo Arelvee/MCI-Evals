@@ -125,6 +125,15 @@
     @apply h-9 w-9 rounded-lg;
   }
 
+  .mci-logo-partner-seal {
+    @apply h-9 w-9 shrink-0 rounded-full border-2 border-white bg-white bg-contain bg-center bg-no-repeat shadow-sm shadow-slate-900/10;
+    background-image: url("/brand/upm-drrmh-logo.png");
+  }
+
+  .mci-logo.compact .mci-logo-partner-seal {
+    @apply h-7 w-7;
+  }
+
   .mci-logo-type {
     @apply grid leading-none;
   }

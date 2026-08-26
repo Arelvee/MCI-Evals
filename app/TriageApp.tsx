@@ -1146,6 +1146,7 @@ function MciTriageLogo({ compact = false }: { compact?: boolean }) {
         <strong>MCI Triage</strong>
         <small>Evaluation Tool</small>
       </span>
+      <span className="mci-logo-partner-seal" title="UPM DRRMH" />
     </div>
   );
 }
