@@ -14,7 +14,31 @@
     <title>MCI Triage Evaluation</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main style="max-width:420px;margin:15vh auto;padding:24px;font-family:system-ui;color:#164b35">
+        <h1>MCI Triage Evaluation</h1>
+        <p>Loading score sheet...</p>
+        <div id="app-recovery" hidden>
+          <p>The app could not finish loading. Connect to the internet and try again. Your saved records will stay on this device.</p>
+          <button onclick="location.reload()" style="padding:12px 20px;background:#146c43;color:white;border:0;border-radius:6px">Try again</button>
+        </div>
+      </main>
+    </div>
+    <script>
+      // This recovery path runs even when the app's JavaScript fails to load.
+      setTimeout(function () {
+        var recovery = document.getElementById('app-recovery');
+        if (recovery) recovery.hidden = false;
+      }, 8000);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function (registration) {
+          registration.update().catch(function () {});
+        }).catch(function () {});
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (document.getElementById('app-recovery')) location.reload();
+        });
+      }
+    </script>
     <script type="module" src="/main.tsx"></script>
   </body>
 </html>

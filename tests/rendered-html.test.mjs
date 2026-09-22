@@ -133,12 +133,12 @@ test("ships Day 1, Day 2, and Day 3 scoring with PWA assets", async () => {
   assert.match(manifest, /Offline-ready Day 1 to Day 3 MCI triage score sheets/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /"src": "\/icons\/icon-192\.png"/);
-  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v21"/);
+  assert.match(serviceWorker, /CACHE_NAME = "mci-triage-pwa-v22"/);
   assert.match(serviceWorker, /\/brand\/upm-drrmh-logo\.png/);
   assert.match(serviceWorker, /isApiRequest/);
   assert.match(serviceWorker, /!isApiRequest\(request\)/);
   assert.match(serviceWorker, /precacheAppShell/);
-  assert.match(serviceWorker, /cachedBuildAssetFallback/);
+  assert.doesNotMatch(serviceWorker, /cachedBuildAssetFallback/);
   assert.match(serviceWorker, /APP_SHELL_ASSETS/);
   assert.match(serviceWorker, /navigationResponse/);
   assert.match(api, /SUPABASE_URL/);

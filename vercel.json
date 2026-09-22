@@ -2,5 +2,9 @@
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "vercel-dist",
   "framework": null,
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }] }
+  ]
 }

@@ -1,6 +1,5 @@
-const CACHE_NAME = "mci-triage-pwa-v21";
+const CACHE_NAME = "mci-triage-pwa-v22";
 const APP_SHELL_ASSETS = [
-  "/",
   "/manifest.webmanifest",
   "/favicon.svg",
   "/brand/upm-drrmh-logo.png",
@@ -24,16 +23,17 @@ async function precacheAppShell() {
       return;
     }
 
-    await cache.put("/", response.clone());
-    const assetUrls = [...new Set(buildAssetUrlsFromHtml(await response.text()))];
+    const assetUrls = [...new Set(buildAssetUrlsFromHtml(await response.clone().text()))];
     await Promise.all(
       assetUrls.map(async (assetUrl) => {
         const assetResponse = await fetch(assetUrl, { cache: "no-store" });
-        if (canCache(assetResponse)) {
-          await cache.put(assetUrl, assetResponse);
+        if (!isValidAsset(new Request(new URL(assetUrl, self.location.origin)), assetResponse)) {
+          throw new Error("App asset unavailable");
         }
+        await cache.put(assetUrl, assetResponse);
       }),
     );
+    await cache.put("/", response);
   } catch {
     // The app shell can still be filled by runtime caching after first load.
   }
@@ -45,14 +45,8 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-      ),
-  );
-  self.clients.claim();
+  // Existing tabs may still need exact hashed assets from the previous release.
+  event.waitUntil(self.clients.claim());
 });
 
 function isSameOrigin(request) {
@@ -82,12 +76,26 @@ async function putInCache(request, response) {
 
 async function navigationResponse(request) {
   try {
-    const response = await fetch(request);
-    await putInCache(request, response);
-    await putInCache(new Request("/"), response);
+    const response = await fetch(request, { cache: "no-store" });
+    if (!response.ok) throw new Error("Navigation unavailable");
+    // Publish the offline document only after its matching assets are available.
+    const assets = buildAssetUrlsFromHtml(await response.clone().text());
+    try {
+      await Promise.all(assets.map(async (url) => {
+        const asset = new Request(new URL(url, self.location.origin));
+        const result = await fetch(asset);
+        if (!isValidAsset(asset, result)) throw new Error("Asset unavailable");
+        await putInCache(asset, result);
+      }));
+      await putInCache(request, response);
+      await putInCache(new Request(new URL("/", self.location.origin)), response);
+    } catch { /* Preserve the last usable offline document. */ }
     return response;
   } catch {
+    const cache = await caches.open(CACHE_NAME);
     return (
+      (await cache.match(request)) ||
+      (await cache.match("/")) ||
       (await caches.match(request)) ||
       (await caches.match("/")) ||
       new Response("MCI Triage is offline and the app shell is not cached yet.", {
@@ -101,43 +109,30 @@ async function navigationResponse(request) {
 async function cachedAssetResponse(request) {
   const cached = await caches.match(request);
 
-  if (cached) {
-    fetch(request)
-      .then((response) => putInCache(request, response))
-      .catch(() => undefined);
+  if (cached && isValidAsset(request, cached)) {
     return cached;
   }
 
   try {
     const response = await fetch(request);
-    if (!canCache(response)) {
-      return (await cachedBuildAssetFallback(request)) || response;
-    }
+    if (!isValidAsset(request, response)) return response;
 
     await putInCache(request, response);
     return response;
   } catch {
-    return (await cachedBuildAssetFallback(request)) || new Response("Offline asset unavailable.", {
+    return new Response("Offline asset unavailable.", {
       headers: { "Content-Type": "text/plain" },
       status: 503,
     });
   }
 }
 
-async function cachedBuildAssetFallback(request) {
+function isValidAsset(request, response) {
   const pathname = new URL(request.url).pathname;
-  const extension = pathname.endsWith(".js") ? ".js" : pathname.endsWith(".css") ? ".css" : "";
-  if (!pathname.startsWith("/assets/") || !extension) {
-    return null;
-  }
-
-  const cache = await caches.open(CACHE_NAME);
-  const keys = await cache.keys();
-  const replacement = keys.find((key) => {
-    const cachedPathname = new URL(key.url).pathname;
-    return cachedPathname.startsWith("/assets/") && cachedPathname.endsWith(extension);
-  });
-  return replacement ? cache.match(replacement) : null;
+  const type = response.headers.get("content-type") || "";
+  return canCache(response) &&
+    (!pathname.endsWith(".js") || /javascript/.test(type)) &&
+    (!pathname.endsWith(".css") || /text\/css/.test(type));
 }
 
 self.addEventListener("fetch", (event) => {
