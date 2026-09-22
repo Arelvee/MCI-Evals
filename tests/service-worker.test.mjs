@@ -42,3 +42,23 @@ test("HTML returned for JS is not cached", async () => {
   await context.cachedAssetResponse(new Request(origin + "/assets/new.js"));
   assert.equal(entries.size, 0);
 });
+
+test("complete offline shell opens without a network request", async () => {
+  let requests = 0;
+  const { context } = setup(async () => { requests++; throw new Error("offline"); }, new Map([
+    [origin + "/", new Response('<script src="/assets/app.js"></script>')],
+    [origin + "/assets/app.js", new Response("app", { headers: { "Content-Type": "application/javascript" } })],
+  ]));
+  assert.equal(await context.offlineShellReady(), true);
+  const response = await context.navigationResponse(new Request(origin));
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /app.js/);
+  assert.equal(requests, 0);
+});
+
+test("offline ready stays false when a required asset is missing", async () => {
+  const { context } = setup(async () => { throw new Error("offline"); }, new Map([
+    [origin + "/", new Response('<script src="/assets/app.js"></script>')],
+  ]));
+  assert.equal(await context.offlineShellReady(), false);
+});

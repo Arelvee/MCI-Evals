@@ -1351,9 +1351,16 @@ export function TriageApp() {
 
     let cancelled = false;
     const markReady = () => {
-      if (!cancelled) {
-        setOfflineReady(true);
-      }
+      const worker = navigator.serviceWorker.controller;
+      if (!worker) return;
+      const channel = new MessageChannel();
+      const timeout = window.setTimeout(() => channel.port1.close(), 15000);
+      channel.port1.onmessage = (event) => {
+        window.clearTimeout(timeout);
+        channel.port1.close();
+        if (!cancelled) setOfflineReady(event.data?.ready === true);
+      };
+      worker.postMessage({ type: "CHECK_OFFLINE_READY" }, [channel.port2]);
     };
 
     navigator.serviceWorker.ready.then(markReady).catch(() => undefined);
@@ -1361,10 +1368,14 @@ export function TriageApp() {
       markReady();
     }
     navigator.serviceWorker.addEventListener("controllerchange", markReady);
+    window.addEventListener("online", markReady);
+    const interval = window.setInterval(markReady, 30000);
 
     return () => {
       cancelled = true;
       navigator.serviceWorker.removeEventListener("controllerchange", markReady);
+      window.removeEventListener("online", markReady);
+      window.clearInterval(interval);
     };
   }, []);
 
@@ -2326,7 +2337,7 @@ export function TriageApp() {
             ) : (
               <WifiOff size={16} aria-hidden="true" />
             )}
-            {online ? (offlineReady ? "Live online" : "Online") : "Offline mode"}
+            {offlineReady ? (online ? "Offline ready" : "Offline ready - working offline") : (online ? "Preparing offline access..." : "Offline - setup incomplete")}
           </span>
           {!standalone ? (
             <button

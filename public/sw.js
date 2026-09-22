@@ -1,4 +1,4 @@
-const CACHE_NAME = "mci-triage-pwa-v22";
+const CACHE_NAME = "mci-triage-pwa-v23";
 const APP_SHELL_ASSETS = [
   "/manifest.webmanifest",
   "/favicon.svg",
@@ -74,7 +74,38 @@ async function putInCache(request, response) {
   await cache.put(request, response.clone());
 }
 
-async function navigationResponse(request) {
+async function offlineShellReady() {
+  const cache = await caches.open(CACHE_NAME);
+  const shell = await cache.match("/");
+  if (!shell) return false;
+  const assets = buildAssetUrlsFromHtml(await shell.text());
+  if (!assets.length) return false;
+  const available = await Promise.all(assets.map(async (url) => {
+    const response = await cache.match(url);
+    return response && isValidAsset(new Request(new URL(url, self.location.origin)), response);
+  }));
+  return available.every(Boolean);
+}
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "CHECK_OFFLINE_READY") return;
+  event.waitUntil((async () => {
+    if (!(await offlineShellReady())) await precacheAppShell().catch(() => undefined);
+    event.ports[0]?.postMessage({ ready: await offlineShellReady() });
+  })());
+});
+
+async function navigationResponse(request, event) {
+  if (await offlineShellReady()) {
+    const cache = await caches.open(CACHE_NAME);
+    // Refresh without delaying a usable offline score sheet.
+    if (event) event.waitUntil(refreshNavigation(request));
+    return cache.match("/");
+  }
+  return refreshNavigation(request);
+}
+
+async function refreshNavigation(request) {
   try {
     const response = await fetch(request, { cache: "no-store" });
     if (!response.ok) throw new Error("Navigation unavailable");
@@ -143,7 +174,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
-    event.respondWith(navigationResponse(request));
+    event.respondWith(navigationResponse(request, event));
     return;
   }
 
