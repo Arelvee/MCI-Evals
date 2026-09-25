@@ -120,6 +120,7 @@ async function supabaseFetch(path: string, init: RequestInit = {}) {
   const key = envValue("SUPABASE_SERVICE_ROLE_KEY");
   const response = await fetch(supabaseUrl(path), {
     ...init,
+    signal: AbortSignal.timeout(15000),
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,
@@ -137,25 +138,40 @@ async function supabaseFetch(path: string, init: RequestInit = {}) {
 }
 
 async function readCloudData() {
-  const [sessionsResponse, scorebookResponse] = await Promise.all([
-    supabaseFetch("triage_sessions?select=payload&order=updated_at.desc"),
+  const [sessions, scorebookResponse] = await Promise.all([
+    readAllSessions(),
     supabaseFetch(
       `triage_app_state?key=eq.${SCOREBOOK_STATE_KEY}&select=payload&limit=1`,
     ),
   ]);
-  const sessionRows = (await sessionsResponse.json()) as Array<{ payload?: unknown }>;
   const scorebookRows = (await scorebookResponse.json()) as Array<{ payload?: unknown }>;
 
   return {
-    sessions: sessionRows.map((row) => row.payload).filter(Boolean),
+    sessions,
     scorebookOverrides: isRecord(scorebookRows[0]?.payload)
       ? scorebookRows[0].payload
       : {},
   };
 }
 
+async function readAllSessions() {
+  const sessions: unknown[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const response = await supabaseFetch(`triage_sessions?select=payload&order=id.asc&limit=${pageSize}&offset=${offset}`);
+    const rows = await response.json() as Array<{ payload?: unknown }>;
+    sessions.push(...rows.map((row) => row.payload).filter(Boolean));
+    if (rows.length < pageSize) return sessions;
+  }
+}
+
 async function upsertSessions(sessions: unknown[]) {
-  const rows = sessions.map(sessionRow).filter((row): row is TriageSessionRow => Boolean(row));
+  const unique = new Map<string, TriageSessionRow>();
+  for (const value of sessions) {
+    const row = sessionRow(value);
+    if (row && (!unique.has(row.id) || row.updated_at > unique.get(row.id)!.updated_at)) unique.set(row.id, row);
+  }
+  const rows = [...unique.values()];
   if (!rows.length) {
     return 0;
   }

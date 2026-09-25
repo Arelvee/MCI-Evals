@@ -1298,3 +1298,9 @@
     @apply w-full;
   }
 }
+ .device-sync-panel { margin-bottom: 12px; border-bottom: 1px solid #d7e3dd; padding: 10px 0; font-size: 14px; }
+ .device-sync-panel summary { cursor: pointer; display: flex; align-items: center; gap: 8px; color: #185c3c; }
+ .device-sync-content { max-width: 560px; padding-top: 12px; }
+ .device-sync-content label { display: grid; gap: 6px; }
+ .device-sync-content input { width: 100%; padding: 10px; border: 1px solid #a8bdb0; border-radius: 6px; }
+ .device-sync-content p { margin-top: 8px; overflow-wrap: anywhere; }

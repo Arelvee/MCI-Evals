@@ -72,6 +72,7 @@ type EvaluationSession = {
 };
 
 type ScorebookOverride = {
+  updatedAt?: string;
   participantName?: string;
   trainingName?: string;
   trainingDate?: string;
@@ -811,6 +812,11 @@ function mergeSessionsByUpdatedAt(
   );
 }
 
+function cloudSnapshot(session: EvaluationSession) {
+  // Transport must never turn an old record into a newer edit.
+  return { ...normalizeTimers(session), updatedAt: session.updatedAt };
+}
+
 function sessionsSignature(sessions: EvaluationSession[]) {
   return sessions
     .map((session) => `${session.id}:${session.updatedAt}`)
@@ -1204,6 +1210,7 @@ export function TriageApp() {
   const [offlineReady, setOfflineReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cloudSignatureRef = useRef("");
+  const cloudBusyRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1412,46 +1419,57 @@ export function TriageApp() {
   }, [cloudSyncKey, hydrated]);
 
   useEffect(() => {
-    if (!hydrated || !online || !cloudSyncKey.trim() || sessions.length === 0) {
+    if (!hydrated || !online || !cloudSyncKey.trim()) {
       return;
     }
 
-    const signature = sessionsSignature(sessions);
-    if (cloudSignatureRef.current === signature) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
+    let cancelled = false;
+    const records = session && sessionHasData(session)
+      ? mergeSessionsByUpdatedAt(sessions, [session]) : sessions;
+    const signature = `${cloudSyncKey.trim()}:${sessionsSignature(records)}`;
       const syncQuietly = async () => {
+        if (cloudBusyRef.current || cancelled) return;
+        cloudBusyRef.current = true;
         try {
-          const response = await fetch("/api/triage-sync", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${cloudSyncKey.trim()}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ sessions: sessions.map(normalizeTimers) }),
-          });
-
-          if (response.ok) {
-            const stamp = new Date().toISOString();
+          setCloudStatus("syncing");
+          if (records.length && cloudSignatureRef.current !== signature) {
+            await callCloudSync("POST", { sessions: records.map(cloudSnapshot) });
             cloudSignatureRef.current = signature;
+          }
+          if (adminUnlocked) {
+            const payload = await callCloudSync("GET");
+            if (!cancelled) mergeCloudPayload(payload);
+          } else if (!records.length) {
+            // Verify server setup even on a device with no saved records yet.
+            await callCloudSync("POST", { sessions: [] });
+          }
+          if (!cancelled) {
+            const stamp = new Date().toISOString();
             localStorage.setItem(CLOUD_LAST_SYNC_KEY, stamp);
             setLastCloudSync(stamp);
             setCloudStatus("synced");
             setCloudMessage("Cloud sync is up to date.");
           }
-        } catch {
-          setCloudStatus("error");
-          setCloudMessage("Cloud sync paused. Saved sheets remain on this device.");
+        } catch (error) {
+          if (!cancelled) {
+            setCloudStatus("error");
+            setCloudMessage(error instanceof Error ? error.message : "Sync will retry. Records are saved on this device.");
+          }
+        } finally {
+          cloudBusyRef.current = false;
         }
       };
-
-      void syncQuietly();
-    }, 1600);
-
-    return () => window.clearTimeout(timeout);
-  }, [cloudSyncKey, hydrated, online, sessions]);
+    const timeout = window.setTimeout(() => void syncQuietly(), 1600);
+    const interval = window.setInterval(() => void syncQuietly(), 30000);
+    const onFocus = () => void syncQuietly();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [cloudSyncKey, hydrated, online, sessions, session, adminUnlocked]);
 
   const dayKey = session?.day ?? "day1";
   const dayConfig = getDayConfig(dayKey);
@@ -1923,6 +1941,7 @@ export function TriageApp() {
         "Content-Type": "application/json",
       },
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(20000),
     });
     const payload = (await response.json().catch(() => ({}))) as CloudSyncResponse;
 
@@ -1948,14 +1967,20 @@ export function TriageApp() {
       : [];
 
     if (incomingSessions.length) {
-      setSessions((current) => mergeSessionsByUpdatedAt(current, incomingSessions));
+      setSessions((current) => {
+        const merged = mergeSessionsByUpdatedAt(current, incomingSessions);
+        return sessionsSignature(current) === sessionsSignature(merged) ? current : merged;
+      });
     }
 
     if (mergeScorebook && isRecord(payload.scorebookOverrides)) {
-      setScorebookOverrides((current) => ({
-        ...(payload.scorebookOverrides as Record<string, ScorebookOverride>),
-        ...current,
-      }));
+      setScorebookOverrides((current) => {
+        const merged = { ...current };
+        for (const [id, entry] of Object.entries(payload.scorebookOverrides as Record<string, ScorebookOverride>)) {
+          if (isRecord(entry) && (!merged[id] || (entry.updatedAt ?? "") > (merged[id].updatedAt ?? ""))) merged[id] = entry;
+        }
+        return JSON.stringify(merged) === JSON.stringify(current) ? current : merged;
+      });
     }
 
     return incomingSessions.length;
@@ -1988,7 +2013,7 @@ export function TriageApp() {
 
     try {
       const payload = await callCloudSync("POST", {
-        sessions: records.map(normalizeTimers),
+        sessions: records.map(cloudSnapshot),
         ...(options.includeScorebook ? { scorebookOverrides } : {}),
       });
       if (options.signature) {
@@ -2051,9 +2076,11 @@ export function TriageApp() {
   async function syncCloudNow() {
     setCloudStatus("syncing");
     setCloudMessage("Syncing all saved sheets and scorebook...");
-    const pushed = await pushCloudSessions(sessions, {
+    const records = session && sessionHasData(session)
+      ? mergeSessionsByUpdatedAt(sessions, [session]) : sessions;
+    const pushed = await pushCloudSessions(records, {
       includeScorebook: true,
-      signature: sessionsSignature(sessions),
+      signature: `${cloudSyncKey.trim()}:${sessionsSignature(records)}`,
     });
     if (pushed) {
       await pullCloudRecords();
@@ -2143,7 +2170,7 @@ export function TriageApp() {
   ) {
     setScorebookOverrides((current) => ({
       ...current,
-      [rowId]: updater(current[rowId] ?? {}),
+      [rowId]: { ...updater(current[rowId] ?? {}), updatedAt: new Date().toISOString() },
     }));
   }
 
@@ -2322,6 +2349,20 @@ export function TriageApp() {
 
   return (
     <main className="app-shell">
+      <details className="device-sync-panel">
+        <summary>
+          <Cloud size={16} aria-hidden="true" />
+          {cloudSyncKey.trim() ? (online ? `Cloud: ${CLOUD_STATUS_LABELS[cloudStatus]}` : "Saved on device - waiting for internet") : "Connect this device to cloud backup"}
+        </summary>
+        <div className="device-sync-content">
+          <label>Device sync key
+            <input type="password" autoComplete="off" value={cloudSyncKey}
+              onChange={(event) => setCloudSyncKey(event.target.value)} placeholder="Enter the key from your administrator" />
+          </label>
+          <p>Use the same private sync key on each training device. Records upload automatically while this app is open and online.</p>
+          <p role="status">{cloudMessage} Last sync: {dateTimeLabel(lastCloudSync)}.</p>
+        </div>
+      </details>
       <header className="topbar">
         <div className="brand-lockup">
           <MciTriageLogo />
